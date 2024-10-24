@@ -120,5 +120,5 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Login successful", "user": string(user)})
+	json.NewEncoder(w).Encode(map[string]string{"message": "Login successful", "token": string(user)})
 }
