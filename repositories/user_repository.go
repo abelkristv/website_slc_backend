@@ -9,6 +9,8 @@ type UserRepository interface {
 	GetAllUsers() ([]models.User, error)
 	GetUserByID(id uint) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
+	GetUserByUsername(username string) (*models.User, error)
+	LoginByUserInitial(initial string) (*models.User, error)
 	CreateUser(user *models.User) error
 	UpdateUser(user *models.User) error
 	DeleteUser(user *models.User) error
@@ -48,6 +50,33 @@ func (r *userRepository) GetUserByID(id uint) (*models.User, error) {
 func (r *userRepository) GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
 	err := r.db.Where("email = ?", email).First(&user).Error
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *userRepository) GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	err := r.db.Where("username = ?", username).First(&user).Error
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *userRepository) LoginByUserInitial(initial string) (*models.User, error) {
+	var user models.User
+	err := r.db.Joins("JOIN assistants ON users.assistant_id = assistants.id").
+		Where("assistants.initial || assistants.generation = ?", initial).
+		First(&user).Error
+
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

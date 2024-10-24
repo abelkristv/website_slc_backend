@@ -2,9 +2,11 @@ package services
 
 import (
 	"errors"
+	"time"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/repositories"
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -92,4 +94,41 @@ func (s *UserService) DeleteUser(id uint) error {
 		return errors.New("user not found")
 	}
 	return s.userRepo.DeleteUser(user)
+}
+
+var jwtKey = []byte("hehe")
+
+type Claims struct {
+	Username string `json:"username"`
+	Role     string `json:"role"`
+	jwt.StandardClaims
+}
+
+func (s *UserService) Login(username, password string) (string, error) {
+	user, err := s.userRepo.LoginByUserInitial(username)
+	if err != nil {
+		return "", err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return "", errors.New("invalid credentials")
+	}
+
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &Claims{
+		Username: user.Username,
+		Role:     user.Role,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }
