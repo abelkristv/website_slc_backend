@@ -11,7 +11,7 @@ type AssistantService struct {
 	assistantRepo repositories.AssistantRepository
 }
 
-func NewAssistantRepository(assistantRepo repositories.AssistantRepository) *AssistantService {
+func NewAssistantService(assistantRepo repositories.AssistantRepository) *AssistantService {
 	return &AssistantService{
 		assistantRepo: assistantRepo,
 	}

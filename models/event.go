@@ -10,4 +10,5 @@ type Event struct {
 	Type             string `gorm:"size:10"`
 	PeriodId         int    `gorm:"uniqueIndex"`
 	User             User   `gorm:"foreignKey:WriterId"`
+	Period           Period `gorm:"foreignKey:PeriodId"`
 }

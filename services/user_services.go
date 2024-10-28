@@ -33,8 +33,8 @@ func (s *UserService) GetUserByID(id uint) (*models.User, error) {
 	return s.userRepo.GetUserByID(id)
 }
 
-func (s *UserService) CreateUser(username, password, role string) (*models.User, error) {
-	if username == "" || password == "" || role == "" {
+func (s *UserService) CreateUser(username, password, role string, assistantId int) (*models.User, error) {
+	if username == "" || password == "" || role == "" || assistantId < 0 {
 		return nil, errors.New("all fields are required")
 	}
 
@@ -53,9 +53,10 @@ func (s *UserService) CreateUser(username, password, role string) (*models.User,
 	}
 
 	newUser := &models.User{
-		Username: username,
-		Password: hashedPassword,
-		Role:     role,
+		Username:    username,
+		Password:    hashedPassword,
+		Role:        role,
+		AssistantId: assistantId,
 	}
 
 	err = s.userRepo.CreateUser(newUser)

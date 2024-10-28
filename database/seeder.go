@@ -67,6 +67,30 @@ func seedAssistant(db *gorm.DB) {
 }
 
 func SeedDatabase(db *gorm.DB) {
-	seedUsers(db)
 	seedAssistant(db)
+	seedUsers(db)
+}
+
+func ClearDatabase(db *gorm.DB) {
+	tables := []string{"users", "assistants"}
+
+	for _, table := range tables {
+		err := db.Exec("DELETE FROM " + table).Error
+		if err != nil {
+			log.Fatalf("Failed to clear table %s: %v", table, err)
+		}
+		log.Printf("Cleared table %s successfully", table)
+	}
+
+	err := db.Exec("ALTER SEQUENCE users_id_seq RESTART WITH 1").Error
+	if err != nil {
+		log.Fatalf("Failed to reset sequence for users: %v", err)
+	}
+
+	err = db.Exec("ALTER SEQUENCE assistants_id_seq RESTART WITH 1").Error
+	if err != nil {
+		log.Fatalf("Failed to reset sequence for assistants: %v", err)
+	}
+
+	log.Println("Database cleared and sequences reset successfully")
 }
