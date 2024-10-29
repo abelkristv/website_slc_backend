@@ -22,46 +22,40 @@ func NewAssistantHandler(assistantService *services.AssistantService) *Assistant
 	}
 }
 
-// GetAllAssistants retrieves assistants based on generation and name filters.
 func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Request) {
 	generation := r.URL.Query().Get("generation")
-	name := r.URL.Query().Get("name") // Get the name from query parameters
+	name := r.URL.Query().Get("name")
 
 	var users []models.Assistant
 	var err error
 
 	if generation != "" {
-		// If a generation is provided, fetch assistants by generation
 		users, err = h.assistantService.GetAssistantsByGeneration(generation)
 		if err != nil {
 			http.Error(w, "Unable to retrieve assistants for the specified generation", http.StatusInternalServerError)
 			return
 		}
 
-		// Check the first two letters of the name
 		if name != "" {
-			if isInitialsSearch(name) { // Check if the first two letters are uppercase
-				users = filterByInitials(users, name) // Filter by initials
+			if isInitialsSearch(name) {
+				users = filterByInitials(users, name)
 			} else {
-				users = filterByName(users, name) // Filter by name
+				users = filterByName(users, name)
 			}
 		}
 	} else if name != "" {
-		// If no generation is provided but a name is provided, fetch all assistants
 		users, err = h.assistantService.GetAllAssistants()
 		if err != nil {
 			http.Error(w, "Unable to retrieve assistants", http.StatusInternalServerError)
 			return
 		}
 
-		// Check the first two letters of the name
 		if isInitialsSearch(name) {
-			users = filterByInitials(users, name) // Filter by initials
+			users = filterByInitials(users, name)
 		} else {
-			users = filterByName(users, name) // Filter by name
+			users = filterByName(users, name)
 		}
 	} else {
-		// If neither generation nor name is provided, fetch all assistants
 		users, err = h.assistantService.GetAllAssistants()
 		if err != nil {
 			http.Error(w, "Unable to retrieve assistants", http.StatusInternalServerError)
@@ -73,15 +67,13 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(users)
 }
 
-// isInitialsSearch checks if the first two characters of the name are uppercase.
 func isInitialsSearch(name string) bool {
 	if len(name) < 2 {
-		return false // Not enough characters to check
+		return false
 	}
 	return unicode.IsUpper(rune(name[0])) && unicode.IsUpper(rune(name[1]))
 }
 
-// filterByName filters users based on the full name containing the name parameter.
 func filterByName(users []models.Assistant, name string) []models.Assistant {
 	filteredUsers := []models.Assistant{}
 	for _, user := range users {
@@ -92,7 +84,6 @@ func filterByName(users []models.Assistant, name string) []models.Assistant {
 	return filteredUsers
 }
 
-// filterByInitials filters users based on initials containing the name parameter.
 func filterByInitials(users []models.Assistant, name string) []models.Assistant {
 	filteredUsers := []models.Assistant{}
 	for _, user := range users {
@@ -103,10 +94,10 @@ func filterByInitials(users []models.Assistant, name string) []models.Assistant 
 	return filteredUsers
 }
 
-// Helper function to check if a string contains another string (case insensitive)
 func contains(fullName, name string) bool {
 	return strings.Contains(strings.ToLower(fullName), strings.ToLower(name))
 }
+
 func (h *AssistantHandler) GetAssistantById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])

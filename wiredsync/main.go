@@ -66,6 +66,23 @@ func main() {
 			continue
 		}
 	}
+	for _, user := range data.Inactive {
+		log.Print(user.Username)
+
+		if !isValidUsername(user.Username) {
+			log.Printf("Username %s does not match the required format. Skipping...\n", user.Username)
+			continue
+		}
+
+		if user.Name == "Admin Lab Mass Comm" {
+			continue
+		}
+
+		if !processUser(db, user) {
+			log.Printf("User %s already exists, skipping...\n", user.Username)
+			continue
+		}
+	}
 }
 
 func insertCourseOutlines(db *gorm.DB) {
@@ -171,7 +188,7 @@ func processUser(db *gorm.DB, user api.User) bool {
 	roles := fetchRoles(user.Username)
 
 	assistant := createAssistant(db, user, email)
-	createUser(db, user, roles[0], int(assistant.ID))
+	createUser(db, user, roles, int(assistant.ID))
 
 	return true
 }
@@ -214,8 +231,13 @@ func createAssistant(db *gorm.DB, user api.User, email string) models.Assistant 
 	return assistant
 }
 
-func createUser(db *gorm.DB, user api.User, role string, assistantID int) {
+func createUser(db *gorm.DB, user api.User, roles []string, assistantID int) {
 	hashedPassword := generatePassword(user.Username)
+
+	role := "Assistant" // Default role
+	if len(roles) > 0 {
+		role = roles[0] // Assign the first role if available
+	}
 
 	newUser := models.User{
 		Username:    user.Username,
