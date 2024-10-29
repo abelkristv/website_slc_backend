@@ -64,6 +64,9 @@ func main() {
 
 			initial := user.Username[:2]    // Assuming the first two characters are the initials
 			generation := user.Username[2:] // The rest is the generation
+			if user.Name == "Admin Lab Mass Comm" {
+				continue
+			}
 			assistant := models.Assistant{
 				Initial:        initial,
 				Generation:     generation,

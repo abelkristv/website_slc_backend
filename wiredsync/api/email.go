@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 type EmailResponse struct {
@@ -32,12 +31,13 @@ func FetchEmail(binusianID string) (string, error) {
 		return "", err
 	}
 
-	// Validate emails and find one ending with .ac.id
 	for _, email := range emailData.Emails {
-		if strings.HasSuffix(email.Email, ".ac.id") {
-			return email.Email, nil // Return the first valid email found
-		}
+		// if strings.HasSuffix(email.Email, ".ac.id") || strings.HasSuffix(email.Email, ".edu") {
+		return email.Email, nil
+		// }
 	}
 
-	return "", fmt.Errorf("no valid email ending with .ac.id found")
+	// return "", fmt.Errorf("no valid email ending with .ac.id found")
+	return "", nil
+
 }
