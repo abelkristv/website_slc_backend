@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"time"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/wiredsync/api"
@@ -47,6 +48,7 @@ func main() {
 
 	db := setupDatabase()
 	insertCourseOutlines(db)
+	insertPeriod(db)
 	data := fetchUserData()
 
 	for _, user := range data.Active {
@@ -85,8 +87,71 @@ func main() {
 	}
 }
 
+func insertPeriod(db *gorm.DB) {
+	periods, err := api.FetchPeriods()
+	if err != nil {
+		log.Fatalf("Failed to fetch periods: %v", err)
+	}
+
+	// Define the layouts
+	layouts := []string{
+		"2006-01-02T15:04:05.000", // Standard layout
+		"2006-01-02T15:04:05",     // Alternative layout without colon
+	}
+
+	for _, period := range periods {
+		var start, end time.Time
+		var parseErr error
+
+		// Try to parse the start date
+		for _, layout := range layouts {
+			start, parseErr = time.Parse(layout, period.Start)
+			if parseErr == nil {
+				break
+			}
+		}
+		if parseErr != nil {
+			log.Printf("Failed to parse start date %s: %v", period.Start, parseErr)
+			continue // Skip this period if both formats fail
+		}
+
+		// Try to parse the end date
+		for _, layout := range layouts {
+			end, parseErr = time.Parse(layout, period.End)
+			if parseErr == nil {
+				break
+			}
+		}
+		if parseErr != nil {
+			log.Printf("Failed to parse end date %s: %v", period.End, parseErr)
+			continue // Skip this period if both formats fail
+		}
+
+		periodModel := models.Period{
+			PeriodTitle: period.Description,
+			StartDate:   start,
+			EndDate:     end,
+		}
+
+		var existingPeriod models.Period
+		if err := db.Where("period_title = ?", periodModel.PeriodTitle).First(&existingPeriod).Error; err != nil && err != gorm.ErrRecordNotFound {
+			log.Fatalf("Error querying period: %v", err)
+		}
+
+		if existingPeriod.ID != 0 {
+			log.Printf("Period %s already exists, skipping...", periodModel.PeriodTitle)
+			continue
+		}
+
+		// Insert the period into the database
+		if err := db.Create(&periodModel).Error; err != nil {
+			log.Fatalf("Failed to create period: %v", err)
+		}
+		log.Printf("Created period: %s", periodModel.PeriodTitle)
+	}
+}
+
 func insertCourseOutlines(db *gorm.DB) {
-	// Fetch the course outlines using the stored auth token
 	courseOutlines, err := api.FetchCourseOutlines(authToken.AccessToken)
 	if err != nil {
 		log.Fatalf("Failed to fetch course outlines: %v", err)
@@ -97,7 +162,6 @@ func insertCourseOutlines(db *gorm.DB) {
 			CourseTitle: courseOutline.Name,
 		}
 
-		// Check if course already exists in the database
 		var existingCourse models.Course
 		if err := db.Where("course_title = ?", course.CourseTitle).First(&existingCourse).Error; err != nil && err != gorm.ErrRecordNotFound {
 			log.Fatalf("Error querying course: %v", err)
@@ -234,9 +298,9 @@ func createAssistant(db *gorm.DB, user api.User, email string) models.Assistant 
 func createUser(db *gorm.DB, user api.User, roles []string, assistantID int) {
 	hashedPassword := generatePassword(user.Username)
 
-	role := "Assistant" // Default role
+	role := "Assistant"
 	if len(roles) > 0 {
-		role = roles[0] // Assign the first role if available
+		role = roles[0]
 	}
 
 	newUser := models.User{

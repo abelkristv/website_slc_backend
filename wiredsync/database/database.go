@@ -24,7 +24,7 @@ func SetupDatabase() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&models.User{}, &models.Assistant{}, &models.Course{})
+	err = db.AutoMigrate(&models.User{}, &models.Assistant{}, &models.Course{}, &models.Period{})
 	if err != nil {
 		return nil, err
 	}
