@@ -1,16 +1,26 @@
 package database
 
 import (
+	"log"
+	"os"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/abelkristv/slc_website/models"
+	"github.com/joho/godotenv"
 )
 
 func SetupDatabase() (*gorm.DB, error) {
-	dsn := "host=localhost user=abel password=hehe dbname=slc_website port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("error loading .env file")
+	}
+
+	dsn := os.Getenv("DB_DSN")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
+		log.Fatal("failed to connect to PostgreSQL database:", err)
 		return nil, err
 	}
 
