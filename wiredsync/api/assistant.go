@@ -16,26 +16,26 @@ type User struct {
 	Username   string `json:"username"`
 }
 
-type ApiResponse struct {
+type UserDataResponse struct {
 	Active   []User `json:"active"`
 	Inactive []User `json:"inactive"`
 }
 
-func FetchDataFromAPI() (ApiResponse, error) {
+func FetchDataFromAPI() (UserDataResponse, error) {
 	resp, err := http.Get("https://bluejack.binus.ac.id/lapi/api/Assistant/All")
 	if err != nil {
-		return ApiResponse{}, err
+		return UserDataResponse{}, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return ApiResponse{}, err
+		return UserDataResponse{}, err
 	}
 
-	var data ApiResponse
+	var data UserDataResponse
 	if err := json.Unmarshal(body, &data); err != nil {
-		return ApiResponse{}, err
+		return UserDataResponse{}, err
 	}
 
 	return data, nil

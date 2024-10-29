@@ -72,7 +72,7 @@ func SeedDatabase(db *gorm.DB) {
 }
 
 func ClearDatabase(db *gorm.DB) {
-	tables := []string{"users", "assistants"}
+	tables := []string{"users", "assistants", "courses"}
 
 	for _, table := range tables {
 		err := db.Exec("DELETE FROM " + table).Error

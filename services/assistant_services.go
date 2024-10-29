@@ -74,3 +74,15 @@ func (s *AssistantService) DeleteAssistant(id uint) error {
 	}
 	return s.assistantRepo.DeleteAssistant(assistant)
 }
+
+func (s *AssistantService) GetAllGenerations() ([]string, error) {
+	return s.assistantRepo.GetAllGenerations()
+}
+
+func (s *AssistantService) GetAssistantsByGeneration(generation string) ([]models.Assistant, error) {
+	return s.assistantRepo.GetAssistantsByGeneration(generation)
+}
+
+func (s *AssistantService) SearchAssistantsByName(name string) ([]models.Assistant, error) {
+	return s.assistantRepo.SearchAssistantsByName(name)
+}

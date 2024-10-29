@@ -23,6 +23,8 @@ func RegisterAssistantRoutes(router *mux.Router, assistantHandler *handlers.Assi
 	router.HandleFunc("/assistants", assistantHandler.CreateAssistant).Methods("POST")
 	router.HandleFunc("/assistants/{id:[0-9]+}", assistantHandler.UpdateAssistant).Methods("PUT")
 	router.HandleFunc("/assistants/{id:[0-9]+}", assistantHandler.DeleteAssistant).Methods("DELETE")
+	router.HandleFunc("/assistants/getgenerations", assistantHandler.GetAllGenerations).Methods("GET")
+	// router.HandleFunc("/assistants/", assistantHandler.GetAssistantsByGeneration).Methods("GET")
 }
 
 func RegisterEventRoutes(router *mux.Router, eventHandler *handlers.EventHandler) {
