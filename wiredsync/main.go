@@ -69,6 +69,7 @@ func main() {
 				Generation:     generation,
 				Email:          email,
 				ProfilePicture: profilePicture,
+				FullName:       user.Name,
 			}
 
 			if err := db.Create(&assistant).Error; err != nil {
