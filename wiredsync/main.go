@@ -56,11 +56,11 @@ func main() {
 			}
 
 			// Fetch profile picture using PictureId
-			profilePicture, err := api.FetchProfilePicture(user.PictureID)
-			if err != nil {
-				log.Printf("Failed to fetch profile picture for %s: %v\n", user.Username, err)
-				continue
-			}
+			// profilePicture, err := api.FetchProfilePicture(user.PictureID)
+			// if err != nil {
+			// 	log.Printf("Failed to fetch profile picture for %s: %v\n", user.Username, err)
+			// 	continue
+			// }
 
 			initial := user.Username[:2]    // Assuming the first two characters are the initials
 			generation := user.Username[2:] // The rest is the generation
@@ -68,7 +68,7 @@ func main() {
 				Initial:        initial,
 				Generation:     generation,
 				Email:          email,
-				ProfilePicture: profilePicture,
+				ProfilePicture: fmt.Sprintf("https://bluejack.binus.ac.id/lapi/api/Account/GetThumbnail?id=%s", user.PictureID),
 				FullName:       user.Name,
 			}
 
