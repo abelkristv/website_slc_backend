@@ -15,13 +15,13 @@ func seedUsers(db *gorm.DB) {
 	}
 	users := []models.User{
 		{
-			Username:    "abel",
+			Username:    "BL23-2",
 			Password:    hashedPassword,
 			Role:        models.AssistantRole.String(),
 			AssistantId: 1,
 		},
 		{
-			Username:    "jason",
+			Username:    "DT23-2",
 			Password:    hashedPassword,
 			Role:        models.Admin.String(),
 			AssistantId: 2,

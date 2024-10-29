@@ -6,7 +6,7 @@ type User struct {
 	gorm.Model
 	Username    string    `gorm:"size:100"`
 	Password    string    `gorm:"size:100"`
-	Role        string    `gorm:"size:10"`
+	Role        string    `gorm:"size:100"`
 	AssistantId int       `gorm:"uniqueIndex"`
 	Assistant   Assistant `gorm:"foreignKey:AssistantId"`
 }

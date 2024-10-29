@@ -18,6 +18,7 @@ func main() {
 	router := mux.NewRouter()
 	db, err := database.InitializeDB()
 
+	// Handle command line arguments for seeding or clearing the database
 	for _, arg := range os.Args {
 		if arg == "--seed" {
 			database.SeedDatabase(db)
@@ -35,17 +36,18 @@ func main() {
 	userService := services.NewUserService(userRepo)
 	userHandler := handlers.NewUserHandler(userService)
 
-	// Initialize Assistant handler
 	assistantRepo := repositories.NewAssistantRepository(db)
 	assistantService := services.NewAssistantService(assistantRepo)
 	assistantHandler := handlers.NewAssistantHandler(assistantService)
 
-	// Initialize Event handler
 	eventRepo := repositories.NewEventRepository(db)
 	eventService := services.NewEventService(eventRepo)
 	eventHandler := handlers.NewEventHandler(eventService)
 
-	// Set up CORS
+	periodRepo := repositories.NewPeriodRepository(db)
+	periodService := services.NewPeriodService(periodRepo)
+	periodHandler := handlers.NewPeriodHandler(periodService)
+
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
@@ -55,10 +57,10 @@ func main() {
 
 	handler := corsHandler.Handler(router)
 
-	// Register routes for users, assistants, and events
 	routes.RegisterUserRoutes(router, userHandler)
 	routes.RegisterAssistantRoutes(router, assistantHandler)
 	routes.RegisterEventRoutes(router, eventHandler)
+	routes.RegisterPeriodRoutes(router, periodHandler)
 
 	log.Println("Starting server on :8888")
 	log.Fatal(http.ListenAndServe(":8888", handler))
