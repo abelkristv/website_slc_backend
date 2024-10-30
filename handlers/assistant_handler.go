@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode"
@@ -25,6 +26,8 @@ func NewAssistantHandler(assistantService *services.AssistantService) *Assistant
 func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Request) {
 	generation := r.URL.Query().Get("generation")
 	name := r.URL.Query().Get("name")
+	orderby := r.URL.Query().Get("orderby")
+	order := strings.ToLower(r.URL.Query().Get("order")) // Optional, default to ascending
 
 	var users []models.Assistant
 	var err error
@@ -61,6 +64,29 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 			http.Error(w, "Unable to retrieve assistants", http.StatusInternalServerError)
 			return
 		}
+	}
+
+	// Sort based on the orderby and order parameters
+	if orderby != "" {
+		sort.Slice(users, func(i, j int) bool {
+			var less bool
+			switch orderby {
+			case "generation":
+				less = users[i].Generation < users[j].Generation
+			case "name":
+				less = users[i].FullName < users[j].FullName
+			case "initial":
+				less = users[i].Initial < users[j].Initial
+			default:
+				less = true
+			}
+
+			// If order is "descending", reverse the result
+			if order == "descending" {
+				return !less
+			}
+			return less
+		})
 	}
 
 	w.Header().Set("Content-Type", "application/json")

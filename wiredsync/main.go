@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/abelkristv/slc_website/models"
@@ -93,17 +94,15 @@ func insertPeriod(db *gorm.DB) {
 		log.Fatalf("Failed to fetch periods: %v", err)
 	}
 
-	// Define the layouts
 	layouts := []string{
-		"2006-01-02T15:04:05.000", // Standard layout
-		"2006-01-02T15:04:05",     // Alternative layout without colon
+		"2006-01-02T15:04:05.000",
+		"2006-01-02T15:04:05",
 	}
 
 	for _, period := range periods {
 		var start, end time.Time
 		var parseErr error
 
-		// Try to parse the start date
 		for _, layout := range layouts {
 			start, parseErr = time.Parse(layout, period.Start)
 			if parseErr == nil {
@@ -112,10 +111,9 @@ func insertPeriod(db *gorm.DB) {
 		}
 		if parseErr != nil {
 			log.Printf("Failed to parse start date %s: %v", period.Start, parseErr)
-			continue // Skip this period if both formats fail
+			continue
 		}
 
-		// Try to parse the end date
 		for _, layout := range layouts {
 			end, parseErr = time.Parse(layout, period.End)
 			if parseErr == nil {
@@ -124,7 +122,7 @@ func insertPeriod(db *gorm.DB) {
 		}
 		if parseErr != nil {
 			log.Printf("Failed to parse end date %s: %v", period.End, parseErr)
-			continue // Skip this period if both formats fail
+			continue
 		}
 
 		periodModel := models.Period{
@@ -143,14 +141,12 @@ func insertPeriod(db *gorm.DB) {
 			continue
 		}
 
-		// Insert the period into the database
 		if err := db.Create(&periodModel).Error; err != nil {
 			log.Fatalf("Failed to create period: %v", err)
 		}
 		log.Printf("Created period: %s", periodModel.PeriodTitle)
 	}
 }
-
 func insertCourseOutlines(db *gorm.DB) {
 	courseOutlines, err := api.FetchCourseOutlines(authToken.AccessToken)
 	if err != nil {
@@ -158,12 +154,22 @@ func insertCourseOutlines(db *gorm.DB) {
 	}
 
 	for _, courseOutline := range courseOutlines {
+		parts := strings.SplitN(courseOutline.Name, "-", 2)
+		if len(parts) < 2 {
+			log.Printf("Unexpected course format for %s. Skipping...", courseOutline.Name)
+			continue
+		}
+
+		courseCode := parts[0]
+		courseTitle := parts[1]
+
 		course := models.Course{
-			CourseTitle: courseOutline.Name,
+			CourseCode:  courseCode,
+			CourseTitle: courseTitle,
 		}
 
 		var existingCourse models.Course
-		if err := db.Where("course_title = ?", course.CourseTitle).First(&existingCourse).Error; err != nil && err != gorm.ErrRecordNotFound {
+		if err := db.Where("course_code = ?", course.CourseCode).First(&existingCourse).Error; err != nil && err != gorm.ErrRecordNotFound {
 			log.Fatalf("Error querying course: %v", err)
 		}
 
@@ -172,11 +178,10 @@ func insertCourseOutlines(db *gorm.DB) {
 			continue
 		}
 
-		// Insert the course into the database
 		if err := db.Create(&course).Error; err != nil {
 			log.Fatalf("Failed to create course: %v", err)
 		}
-		log.Printf("Created course: %s", course.CourseTitle)
+		log.Printf("Created course: %s with code: %s", course.CourseTitle, course.CourseCode)
 	}
 }
 
