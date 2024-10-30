@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"unicode"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/services"
@@ -54,32 +53,24 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 			http.Error(w, "Unable to retrieve assistants for the specified generation", http.StatusInternalServerError)
 			return
 		}
-
-		if name != "" {
-			if isInitialsSearch(name) {
-				users = filterByInitials(users, name)
-			} else {
-				users = filterByName(users, name)
-			}
-		}
-	} else if name != "" {
-		users, err = h.assistantService.GetAllAssistants()
-		if err != nil {
-			http.Error(w, "Unable to retrieve assistants", http.StatusInternalServerError)
-			return
-		}
-
-		if isInitialsSearch(name) {
-			users = filterByInitials(users, name)
-		} else {
-			users = filterByName(users, name)
-		}
 	} else {
 		users, err = h.assistantService.GetAllAssistants()
 		if err != nil {
 			http.Error(w, "Unable to retrieve assistants", http.StatusInternalServerError)
 			return
 		}
+	}
+
+	if name != "" {
+		filteredUsers := []models.Assistant{}
+
+		for _, user := range users {
+			userInitialGeneration := user.Initial + user.Generation
+			if contains(user.FullName, name) || contains(userInitialGeneration, name) {
+				filteredUsers = append(filteredUsers, user)
+			}
+		}
+		users = filteredUsers
 	}
 
 	if status != "" {
@@ -125,33 +116,6 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(users)
-}
-
-func isInitialsSearch(name string) bool {
-	if len(name) < 2 {
-		return false
-	}
-	return unicode.IsUpper(rune(name[0])) && unicode.IsUpper(rune(name[1]))
-}
-
-func filterByName(users []models.Assistant, name string) []models.Assistant {
-	filteredUsers := []models.Assistant{}
-	for _, user := range users {
-		if contains(user.FullName, name) { // Check if the user's full name contains the name parameter
-			filteredUsers = append(filteredUsers, user)
-		}
-	}
-	return filteredUsers
-}
-
-func filterByInitials(users []models.Assistant, name string) []models.Assistant {
-	filteredUsers := []models.Assistant{}
-	for _, user := range users {
-		if strings.Contains(user.Initial, name) { // Check if the user's initials contain the name parameter
-			filteredUsers = append(filteredUsers, user)
-		}
-	}
-	return filteredUsers
 }
 
 func contains(fullName, name string) bool {
