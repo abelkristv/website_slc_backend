@@ -63,7 +63,6 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 
 	if name != "" {
 		filteredUsers := []models.Assistant{}
-
 		for _, user := range users {
 			userInitialGeneration := user.Initial + user.Generation
 			if contains(user.FullName, name) || contains(userInitialGeneration, name) {
@@ -82,6 +81,9 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 		}
 		users = filteredUsers
 	}
+
+	// Calculate total count before pagination
+	totalCount := len(users)
 
 	if orderby != "" {
 		sort.Slice(users, func(i, j int) bool {
@@ -106,16 +108,34 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 
 	startIndex := (page - 1) * limit
 	endIndex := startIndex + limit
-	if startIndex > len(users) {
+	if startIndex > totalCount {
 		users = []models.Assistant{}
-	} else if endIndex > len(users) {
+	} else if endIndex > totalCount {
 		users = users[startIndex:]
 	} else {
 		users = users[startIndex:endIndex]
 	}
 
+	// Calculate total pages
+	totalPages := (totalCount + limit - 1) / limit // This handles any remainder
+
+	// Create a response structure
+	response := struct {
+		Users      []models.Assistant `json:"users"`
+		TotalCount int                `json:"total_count"`
+		TotalPages int                `json:"total_pages"`
+		// Page       int                `json:"page"`
+		// Limit      int                `json:"limit"`
+	}{
+		Users:      users,
+		TotalCount: totalCount,
+		TotalPages: totalPages,
+		// Page:       page,
+		// Limit:      limit,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(users)
+	json.NewEncoder(w).Encode(response)
 }
 
 func contains(fullName, name string) bool {
