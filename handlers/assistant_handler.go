@@ -24,10 +24,11 @@ func NewAssistantHandler(assistantService *services.AssistantService) *Assistant
 }
 
 func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Request) {
-	generation := r.URL.Query().Get("generation")
-	name := r.URL.Query().Get("name")
-	orderby := r.URL.Query().Get("orderby")
-	order := strings.ToLower(r.URL.Query().Get("order")) // Optional, default to ascending
+	generation := strings.ToLower(r.URL.Query().Get("generation"))
+	name := strings.ToLower(r.URL.Query().Get("name"))
+	orderby := strings.ToLower(r.URL.Query().Get("orderby"))
+	order := strings.ToLower(r.URL.Query().Get("order"))   // Optional, default to ascending
+	status := strings.ToLower(r.URL.Query().Get("status")) // New parameter for status
 
 	var users []models.Assistant
 	var err error
@@ -64,6 +65,17 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 			http.Error(w, "Unable to retrieve assistants", http.StatusInternalServerError)
 			return
 		}
+	}
+
+	// Filter by status if specified
+	if status != "" {
+		filteredUsers := []models.Assistant{}
+		for _, user := range users {
+			if (status == "active" && user.Status == "active") || (status == "inactive" && user.Status == "inactive") {
+				filteredUsers = append(filteredUsers, user)
+			}
+		}
+		users = filteredUsers
 	}
 
 	// Sort based on the orderby and order parameters
