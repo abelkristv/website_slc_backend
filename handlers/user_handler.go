@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/services"
@@ -106,14 +107,13 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 
-	// log.Printf("loginn")
-
 	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	user, err := h.userService.Login(credentials.Username, credentials.Password)
+	username := strings.ToUpper(credentials.Username)
+	user, err := h.userService.Login(username, credentials.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
