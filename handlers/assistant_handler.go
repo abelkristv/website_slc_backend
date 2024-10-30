@@ -27,11 +27,26 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 	generation := strings.ToLower(r.URL.Query().Get("generation"))
 	name := strings.ToLower(r.URL.Query().Get("name"))
 	orderby := strings.ToLower(r.URL.Query().Get("orderby"))
-	order := strings.ToLower(r.URL.Query().Get("order"))   // Optional, default to ascending
-	status := strings.ToLower(r.URL.Query().Get("status")) // New parameter for status
+	order := strings.ToLower(r.URL.Query().Get("order"))
+	status := strings.ToLower(r.URL.Query().Get("status"))
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
 
 	var users []models.Assistant
 	var err error
+
+	page := 1
+	limit := 24
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
 
 	if generation != "" {
 		users, err = h.assistantService.GetAssistantsByGeneration(generation)
@@ -67,7 +82,6 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	// Filter by status if specified
 	if status != "" {
 		filteredUsers := []models.Assistant{}
 		for _, user := range users {
@@ -78,7 +92,6 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 		users = filteredUsers
 	}
 
-	// Sort based on the orderby and order parameters
 	if orderby != "" {
 		sort.Slice(users, func(i, j int) bool {
 			var less bool
@@ -93,12 +106,21 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 				less = true
 			}
 
-			// If order is "descending", reverse the result
 			if order == "descending" {
 				return !less
 			}
 			return less
 		})
+	}
+
+	startIndex := (page - 1) * limit
+	endIndex := startIndex + limit
+	if startIndex > len(users) {
+		users = []models.Assistant{}
+	} else if endIndex > len(users) {
+		users = users[startIndex:]
+	} else {
+		users = users[startIndex:endIndex]
 	}
 
 	w.Header().Set("Content-Type", "application/json")
