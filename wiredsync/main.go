@@ -303,8 +303,18 @@ func fetchUserData() api.UserDataResponse {
 }
 
 func isValidUsername(username string) bool {
-	var usernamePattern = regexp.MustCompile(`^[A-Z]{2}\d{2}-\d{1}$`)
-	return usernamePattern.MatchString(username)
+	// Define patterns for valid usernames
+	var usernamePatterns = []string{
+		`^[A-Z]{2}\d{2}-\d{1}$`,
+		`^LC\d{3}$`,
+	}
+
+	for _, pattern := range usernamePatterns {
+		if matched, _ := regexp.MatchString(pattern, username); matched {
+			return true
+		}
+	}
+	return false
 }
 
 func processUser(db *gorm.DB, user api.User, status string) bool {
@@ -347,9 +357,16 @@ func fetchRoles(username string) []string {
 }
 
 func createAssistant(db *gorm.DB, user api.User, email string, status string) models.Assistant {
-	initial := user.Username[:2]
-	generation := user.Username[2:]
+	var initial, generation string
 	profilePictureURL := fmt.Sprintf("https://bluejack.binus.ac.id/lapi/api/Account/GetThumbnail?id=%s", user.PictureID)
+
+	if strings.HasPrefix(user.Username, "LC") && len(user.Username) == 5 {
+		initial = user.Username
+		generation = "PART-TIME"
+	} else {
+		initial = user.Username[:2]
+		generation = user.Username[2:]
+	}
 
 	assistant := models.Assistant{
 		Initial:        initial,
