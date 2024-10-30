@@ -72,7 +72,7 @@ func SeedDatabase(db *gorm.DB) {
 }
 
 func ClearDatabase(db *gorm.DB) {
-	tables := []string{"users", "assistants", "courses"}
+	tables := []string{"teaching_histories", "periods", "courses", "users", "assistants"}
 
 	for _, table := range tables {
 		err := db.Exec("DELETE FROM " + table).Error
@@ -80,17 +80,34 @@ func ClearDatabase(db *gorm.DB) {
 			log.Fatalf("Failed to clear table %s: %v", table, err)
 		}
 		log.Printf("Cleared table %s successfully", table)
-	}
 
-	err := db.Exec("ALTER SEQUENCE users_id_seq RESTART WITH 1").Error
+	}
+	err := db.Exec("ALTER SEQUENCE teaching_histories_id_seq RESTART WITH 1").Error
 	if err != nil {
 		log.Fatalf("Failed to reset sequence for users: %v", err)
 	}
 
 	err = db.Exec("ALTER SEQUENCE assistants_id_seq RESTART WITH 1").Error
 	if err != nil {
-		log.Fatalf("Failed to reset sequence for assistants: %v", err)
+		log.Fatalf("Failed to reset sequence for users: %v", err)
 	}
+	err = db.Exec("ALTER SEQUENCE users_id_seq RESTART WITH 1").Error
+	if err != nil {
+		log.Fatalf("Failed to reset sequence for users: %v", err)
+	}
+	err = db.Exec("ALTER SEQUENCE periods_id_seq RESTART WITH 1").Error
+	if err != nil {
+		log.Fatalf("Failed to reset sequence for users: %v", err)
+	}
+	err = db.Exec("ALTER SEQUENCE courses_id_seq RESTART WITH 1").Error
+	if err != nil {
+		log.Fatalf("Failed to reset sequence for users: %v", err)
+	}
+
+	// err = db.Exec("ALTER SEQUENCE assistants_id_seq RESTART WITH 1").Error
+	// if err != nil {
+	// 	log.Fatalf("Failed to reset sequence for assistants: %v", err)
+	// }
 
 	log.Println("Database cleared and sequences reset successfully")
 }

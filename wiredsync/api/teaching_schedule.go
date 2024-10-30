@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 )
@@ -16,11 +17,13 @@ type TeachingSchedule struct {
 	EndAt        string `json:"EndAt"`
 }
 
-func FetchTeachingHistory(binusianId, semesterId, token string) ([]TeachingSchedule, error) {
+func FetchTeachingHistory(binusianId, semesterId, token, assistantName, periodName string) ([]TeachingSchedule, error) {
 	apiURL := fmt.Sprintf(
 		"https://bluejack.binus.ac.id/lapi/api/Lecturer/GetLecturerTeachingSchedules?binusianId=%s&semesterId=%s&startDate=&endDate=",
 		url.QueryEscape(binusianId), url.QueryEscape(semesterId),
 	)
+
+	log.Printf("Fetching teaching history data for %s- %s", assistantName, periodName)
 
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
@@ -43,6 +46,8 @@ func FetchTeachingHistory(binusianId, semesterId, token string) ([]TeachingSched
 	if err := json.NewDecoder(resp.Body).Decode(&schedules); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
+
+	log.Print(schedules)
 
 	return schedules, nil
 }

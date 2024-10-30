@@ -10,6 +10,7 @@ type Assistant struct {
 	ProfilePicture string       `gorm:"type:text"`
 	Initial        string       `gorm:"size:5"`
 	Generation     string       `gorm:"size:5"`
+	Status         string       `gorm:"size:10"`
 	CarrerPath     []CarrerPath `gorm:"foreignKey:AssistantId"`
 	Award          []Award      `gorm:"foreignKey:AssistantId"`
 }
