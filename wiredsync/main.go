@@ -9,15 +9,14 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"os"
-	"regexp"
 	"strings"
-	"time"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/wiredsync/api"
+	api_repositories "github.com/abelkristv/slc_website/wiredsync/api/repositories"
+	api_service "github.com/abelkristv/slc_website/wiredsync/api/services"
 	"github.com/abelkristv/slc_website/wiredsync/database"
 	"github.com/joho/godotenv"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -30,6 +29,8 @@ type TokenResponse struct {
 
 var authToken TokenResponse
 var client *http.Client
+
+const BaseURL = "https://bluejack.binus.ac.id/lapi/api"
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -49,168 +50,11 @@ func main() {
 
 	db := setupDatabase()
 	insertCourseOutlines(db)
-	periods := insertPeriod(db)
-	data := fetchUserData()
 
-	for _, user := range data.Active {
-		log.Print(user.Username)
+	userRepository := api_repositories.NewAssistantRepository() // Concrete repository implementation
+	userService := api_service.NewUserService(userRepository)
+	userService.FetchAssistant(db, api_service.TokenResponse(authToken))
 
-		if !isValidUsername(user.Username) {
-			log.Printf("Username %s does not match the required format. Skipping...\n", user.Username)
-			continue
-		}
-
-		if user.Name == "Admin Lab Mass Comm" {
-			continue
-		}
-
-		if !processUser(db, user, "active") {
-			log.Printf("User %s already exists, skipping...\n", user.Username)
-			continue
-		}
-	}
-	for _, user := range data.Inactive {
-		log.Print(user.Username)
-
-		if !isValidUsername(user.Username) {
-			log.Printf("Username %s does not match the required format. Skipping...\n", user.Username)
-			continue
-		}
-
-		if user.Name == "Admin Lab Mass Comm" {
-			continue
-		}
-
-		if !processUser(db, user, "inactive") {
-			log.Printf("User %s already exists, skipping...\n", user.Username)
-			continue
-		}
-	}
-
-	for _, assistant := range data.Active {
-		for _, period := range periods {
-			if !isValidUsername(assistant.Username) {
-				log.Printf("Username %s does not match the required format. Skipping...\n", assistant.Username)
-				continue
-			}
-
-			schedules, err := api.FetchTeachingHistory(assistant.BinusianID, period.SemesterID, authToken.AccessToken, assistant.Name, period.Description)
-			if err != nil {
-				log.Printf("Failed to fetch teaching history for assistant %s in semester %s: %v", assistant.Username, period.SemesterID, err)
-				continue
-			}
-
-			for _, schedule := range schedules {
-				log.Printf("Assistant %s teaches %s - %s\n", assistant.Username, schedule.CourseCode, schedule.CourseTitle)
-
-				var course models.Course
-				if err := db.Where("course_code = ?", schedule.CourseCode).First(&course).Error; err != nil {
-					log.Printf("Course not found for code %s: %v", schedule.CourseCode, err)
-					continue
-				}
-
-				var periodModel models.Period
-				if err := db.Where("period_title = ?", period.Description).First(&periodModel).Error; err != nil {
-					log.Printf("Period not found for title %s: %v", period.Description, err)
-					continue
-				}
-
-				var foundAssistant models.Assistant
-				initial := assistant.Username[:2]
-				generation := assistant.Username[2:]
-				if err := db.Where("initial = ? AND generation = ?", initial, generation).First(&foundAssistant).Error; err != nil {
-					log.Printf("Failed to find assistant %s in database: %v", assistant.Username, err)
-					continue
-				}
-
-				// Check for existing teaching history
-				var existingHistory models.TeachingHistory
-				if err := db.Where("assistant_id = ? AND course_id = ? AND period_id = ?", foundAssistant.ID, course.ID, periodModel.ID).First(&existingHistory).Error; err == nil {
-					log.Printf("Teaching history for assistant %s for course %s in period %s already exists, skipping...\n", assistant.Username, schedule.CourseCode, period.Description)
-					continue // Skip if teaching history already exists
-				}
-
-				// Create new teaching history record
-				teachingHistory := models.TeachingHistory{
-					AssistantId: int(foundAssistant.ID),
-					CourseId:    int(course.ID),
-					PeriodId:    int(periodModel.ID),
-				}
-
-				if err := db.Create(&teachingHistory).Error; err != nil {
-					log.Printf("Failed to create teaching history: %v", err)
-				} else {
-					log.Printf("Inserted teaching history for assistant %s for course %s in period %s", assistant.Username, schedule.CourseCode, period.Description)
-				}
-			}
-		}
-	}
-}
-
-func insertPeriod(db *gorm.DB) []api.Period {
-	periods, err := api.FetchPeriods()
-	if err != nil {
-		log.Fatalf("Failed to fetch periods: %v", err)
-	}
-
-	layouts := []string{
-		"2006-01-02T15:04:05.000",
-		"2006-01-02T15:04:05",
-	}
-
-	var createdPeriods []models.Period
-
-	for _, period := range periods {
-		var start, end time.Time
-		var parseErr error
-
-		for _, layout := range layouts {
-			start, parseErr = time.Parse(layout, period.Start)
-			if parseErr == nil {
-				break
-			}
-		}
-		if parseErr != nil {
-			log.Printf("Failed to parse start date %s: %v", period.Start, parseErr)
-			continue
-		}
-
-		for _, layout := range layouts {
-			end, parseErr = time.Parse(layout, period.End)
-			if parseErr == nil {
-				break
-			}
-		}
-		if parseErr != nil {
-			log.Printf("Failed to parse end date %s: %v", period.End, parseErr)
-			// continue
-		}
-
-		periodModel := models.Period{
-			PeriodTitle: period.Description,
-			StartDate:   start,
-			EndDate:     end,
-		}
-
-		var existingPeriod models.Period
-		if err := db.Where("period_title = ?", periodModel.PeriodTitle).First(&existingPeriod).Error; err != nil && err != gorm.ErrRecordNotFound {
-			log.Fatalf("Error querying period: %v", err)
-		}
-
-		if existingPeriod.ID != 0 {
-			log.Printf("Period %s already exists, skipping...", periodModel.PeriodTitle)
-			continue
-		}
-
-		if err := db.Create(&periodModel).Error; err != nil {
-			log.Fatalf("Failed to create period: %v", err)
-		}
-		log.Printf("Created period: %s", periodModel.PeriodTitle)
-
-		createdPeriods = append(createdPeriods, periodModel)
-	}
-
-	return periods
 }
 
 func insertCourseOutlines(db *gorm.DB) {
@@ -292,125 +136,4 @@ func setupDatabase() *gorm.DB {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
 	return db
-}
-
-func fetchUserData() api.UserDataResponse {
-	data, err := api.FetchDataFromAPI()
-	if err != nil {
-		log.Fatalf("Error fetching data: %v", err)
-	}
-	return data
-}
-
-func isValidUsername(username string) bool {
-	// Define patterns for valid usernames
-	var usernamePatterns = []string{
-		`^[A-Z]{2}\d{2}-\d{1}$`,
-		`^LC\d{3}$`,
-	}
-
-	for _, pattern := range usernamePatterns {
-		if matched, _ := regexp.MatchString(pattern, username); matched {
-			return true
-		}
-	}
-	return false
-}
-
-func processUser(db *gorm.DB, user api.User, status string) bool {
-	var foundUser models.User
-	result := db.Where("username = ?", user.Username).First(&foundUser)
-
-	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
-		log.Fatalf("Error querying user: %v", result.Error)
-	}
-
-	if result.RowsAffected > 0 {
-		return false // User already exists
-	}
-
-	email := fetchEmail(user.BinusianID)
-	roles := fetchRoles(user.Username)
-
-	assistant := createAssistant(db, user, email, status)
-	createUser(db, user, roles, int(assistant.ID))
-
-	return true
-}
-
-func fetchEmail(binusianID string) string {
-	email, err := api.FetchEmail(binusianID)
-	if err != nil {
-		log.Printf("Failed to fetch email for BinusianID %s: %v\n", binusianID, err)
-		return ""
-	}
-	return email
-}
-
-func fetchRoles(username string) []string {
-	roles, err := api.FetchAssistantRoles(username)
-	if err != nil {
-		log.Printf("Failed to fetch roles for %s: %v\n", username, err)
-		return []string{"Assistant"}
-	}
-	return roles
-}
-
-func createAssistant(db *gorm.DB, user api.User, email string, status string) models.Assistant {
-	var initial, generation string
-	profilePictureURL := fmt.Sprintf("https://bluejack.binus.ac.id/lapi/api/Account/GetThumbnail?id=%s", user.PictureID)
-
-	if strings.HasPrefix(user.Username, "LC") && len(user.Username) == 5 {
-		initial = user.Username
-		generation = "PART-TIME"
-	} else {
-		initial = user.Username[:2]
-		generation = user.Username[2:]
-	}
-
-	assistant := models.Assistant{
-		Initial:        initial,
-		Generation:     generation,
-		Email:          email,
-		ProfilePicture: profilePictureURL,
-		FullName:       user.Name,
-		Status:         status,
-	}
-
-	if err := db.Create(&assistant).Error; err != nil {
-		log.Fatalf("Failed to create assistant: %v", err)
-	}
-
-	return assistant
-}
-
-func createUser(db *gorm.DB, user api.User, roles []string, assistantID int) {
-	hashedPassword := generatePassword(user.Username)
-
-	role := "Assistant"
-	if len(roles) > 0 {
-		role = roles[0]
-	}
-
-	newUser := models.User{
-		Username:    user.Username,
-		Password:    hashedPassword,
-		Role:        role,
-		AssistantId: assistantID,
-	}
-
-	if err := db.Create(&newUser).Error; err != nil {
-		log.Fatalf("Failed to create user: %v", err)
-	}
-
-	fmt.Printf("Created new user: %s with email and role: %s\n", newUser.Username, newUser.Role)
-}
-
-func generatePassword(username string) string {
-	rawPassword := username + username + username
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(rawPassword), bcrypt.DefaultCost)
-	if err != nil {
-		log.Fatalf("Failed to hash password: %v", err)
-	}
-	return string(hashedPassword)
 }

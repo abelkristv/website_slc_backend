@@ -48,6 +48,10 @@ func main() {
 	periodService := services.NewPeriodService(periodRepo)
 	periodHandler := handlers.NewPeriodHandler(periodService)
 
+	teachingHistoryRepo := repositories.NewTeachingHistoryRepository(db)
+	teachingHistoryService := services.NewTeachingHistoryService(teachingHistoryRepo)
+	teachingHistoryHandler := handlers.NewTeachingHistoryHandler(teachingHistoryService)
+
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
@@ -61,6 +65,7 @@ func main() {
 	routes.RegisterAssistantRoutes(router, assistantHandler)
 	routes.RegisterEventRoutes(router, eventHandler)
 	routes.RegisterPeriodRoutes(router, periodHandler)
+	routes.RegisterTeachingHistoryRoutes(router, teachingHistoryHandler)
 
 	log.Println("Starting server on :8888")
 	log.Fatal(http.ListenAndServe(":8888", handler))

@@ -42,3 +42,8 @@ func RegisterPeriodRoutes(router *mux.Router, periodHandler *handlers.PeriodHand
 	router.HandleFunc("/periods/{id:[0-9]+}", periodHandler.UpdatePeriod).Methods("PUT")
 	router.HandleFunc("/periods/{id:[0-9]+}", periodHandler.DeletePeriod).Methods("DELETE")
 }
+
+func RegisterTeachingHistoryRoutes(router *mux.Router, teachingHistoryHandler *handlers.TeachingHistoryHandler) {
+	router.HandleFunc("/teaching-history", teachingHistoryHandler.GetTeachingHistoryByAssistantAndPeriod).Methods("GET")
+	router.HandleFunc("/teaching-history/grouped", teachingHistoryHandler.GetTeachingHistoryGroupedByPeriod).Methods("GET")
+}

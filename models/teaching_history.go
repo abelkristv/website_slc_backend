@@ -9,5 +9,5 @@ type TeachingHistory struct {
 	PeriodId    int
 	Assistant   Assistant `gorm:"foreignKey:AssistantId"`
 	Course      Course    `gorm:"foreignKey:CourseId"`
-	Period      Award     `gorm:"foreignKey:PeriodId"`
+	Period      Period    `gorm:"foreignKey:PeriodId"`
 }
