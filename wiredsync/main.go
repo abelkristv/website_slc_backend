@@ -62,17 +62,16 @@ func insertCourseOutlines(db *gorm.DB) {
 		log.Fatalf("Failed to fetch course outlines: %v", err)
 	}
 
-	// Create a semaphore channel to limit concurrency
 	semaphore := make(chan struct{}, 500)
 	var wg sync.WaitGroup
 
 	for _, courseOutline := range courseOutlines {
 		wg.Add(1)
-		semaphore <- struct{}{} // Acquire a slot
+		semaphore <- struct{}{}
 
 		go func(courseOutline api.CourseOutline) {
 			defer wg.Done()
-			defer func() { <-semaphore }() // Release the slot
+			defer func() { <-semaphore }()
 
 			parts := strings.SplitN(courseOutline.Name, "-", 2)
 			if len(parts) < 2 {

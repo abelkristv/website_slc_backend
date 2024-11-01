@@ -32,7 +32,7 @@ func (s *AssistantService) FetchAssistant(db *gorm.DB, authToken TokenResponse) 
 	if err != nil {
 		log.Fatalf("Error fetching data: %v", err)
 	}
-	semaphore := make(chan struct{}, 100)
+	semaphore := make(chan struct{}, 30)
 	var wg sync.WaitGroup
 
 	// Process active assistants
