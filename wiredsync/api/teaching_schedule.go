@@ -9,18 +9,32 @@ import (
 )
 
 type TeachingSchedule struct {
-	ClassName    string `json:"ClassName"`
-	CourseCode   string `json:"CourseCode"`
-	CourseTitle  string `json:"CourseTitle"`
-	DeliveryMode string `json:"DeliveryMode"`
-	StartAt      string `json:"StartAt"`
-	EndAt        string `json:"EndAt"`
+	Assistant       string  `json:"Assistant"`
+	Campus          string  `json:"Campus"`
+	Class           string  `json:"Class"`
+	CourseOutlineId string  `json:"CourseOutlineId"`
+	Date            *string `json:"Date"`
+	Day             int     `json:"Day"`
+	Id              string  `json:"Id"`
+	LecturerCode    *string `json:"LecturerCode"`
+	LecturerName    *string `json:"LecturerName"`
+	Note            *string `json:"Note"`
+	Number          int     `json:"Number"`
+	Realization     string  `json:"Realization"`
+	Room            string  `json:"Room"`
+	SemesterId      string  `json:"SemesterId"`
+	Session         *string `json:"Session"`
+	Shift           string  `json:"Shift"`
+	Subject         string  `json:"Subject"`
+	SubjectId       string  `json:"SubjectId"`
+	TheoryClass     *string `json:"TheoryClass"`
+	TotalStudent    int     `json:"TotalStudent"`
 }
 
-func FetchTeachingHistory(binusianId, semesterId, token, assistantName, periodName string) ([]TeachingSchedule, error) {
+func FetchTeachingHistory(username, semesterId, token, assistantName, periodName string) ([]TeachingSchedule, error) {
 	apiURL := fmt.Sprintf(
-		"https://bluejack.binus.ac.id/lapi/api/Lecturer/GetLecturerTeachingSchedules?binusianId=%s&semesterId=%s&startDate=&endDate=",
-		url.QueryEscape(binusianId), url.QueryEscape(semesterId),
+		"https://bluejack.binus.ac.id/lapi/api/Assistant/GetClassTransactionByAssistantUsername?username=%s&semesterId=%s&startDate=&endDate=",
+		url.QueryEscape(username), url.QueryEscape(semesterId),
 	)
 
 	log.Printf("Fetching teaching history data for %s- %s", assistantName, periodName)

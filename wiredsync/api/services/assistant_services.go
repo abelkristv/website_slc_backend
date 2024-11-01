@@ -2,6 +2,7 @@ package api_service
 
 import (
 	"log"
+	"strings"
 	"time"
 
 	"github.com/abelkristv/slc_website/models"
@@ -71,18 +72,28 @@ func (s *AssistantService) FetchAssistant(db *gorm.DB, authToken TokenResponse) 
 				continue
 			}
 
-			schedules, err := api.FetchTeachingHistory(assistant.BinusianID, period.SemesterID, authToken.AccessToken, assistant.Name, period.Description)
+			schedules, err := api.FetchTeachingHistory(assistant.Username, period.SemesterID, authToken.AccessToken, assistant.Name, period.Description)
 			if err != nil {
 				log.Printf("Failed to fetch teaching history for assistant %s in semester %s: %v", assistant.Username, period.SemesterID, err)
 				continue
 			}
 
 			for _, schedule := range schedules {
-				log.Printf("Assistant %s teaches %s - %s\n", assistant.Username, schedule.CourseCode, schedule.CourseTitle)
+
+				splitSubject := func(subject string) (string, string) {
+					parts := strings.SplitN(subject, "-", 2)
+					if len(parts) < 2 {
+						return subject, ""
+					}
+					return parts[0], parts[1]
+				}
+
+				courseCode, courseName := splitSubject(schedule.Subject)
+				log.Printf("Assistant %s teaches %s - %s\n", assistant.Username, courseCode, courseName)
 
 				var course models.Course
-				if err := db.Where("course_code = ?", schedule.CourseCode).First(&course).Error; err != nil {
-					log.Printf("Course not found for code %s: %v", schedule.CourseCode, err)
+				if err := db.Where("course_code = ?", courseCode).First(&course).Error; err != nil {
+					log.Printf("Course not found for code %s: %v", courseCode, err)
 					continue
 				}
 
@@ -102,7 +113,7 @@ func (s *AssistantService) FetchAssistant(db *gorm.DB, authToken TokenResponse) 
 
 				var existingHistory models.TeachingHistory
 				if err := db.Where("assistant_id = ? AND course_id = ? AND period_id = ?", foundAssistant.ID, course.ID, periodModel.ID).First(&existingHistory).Error; err == nil {
-					log.Printf("Teaching history for assistant %s for course %s in period %s already exists, skipping...\n", assistant.Username, schedule.CourseCode, period.Description)
+					log.Printf("Teaching history for assistant %s for course %s in period %s already exists, skipping...\n", assistant.Username, courseCode, period.Description)
 					continue
 				}
 
@@ -115,7 +126,7 @@ func (s *AssistantService) FetchAssistant(db *gorm.DB, authToken TokenResponse) 
 				if err := db.Create(&teachingHistory).Error; err != nil {
 					log.Printf("Failed to create teaching history: %v", err)
 				} else {
-					log.Printf("Inserted teaching history for assistant %s for course %s in period %s", assistant.Username, schedule.CourseCode, period.Description)
+					log.Printf("Inserted teaching history for assistant %s for course %s in period %s", assistant.Username, courseCode, period.Description)
 				}
 			}
 		}

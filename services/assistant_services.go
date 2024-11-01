@@ -21,8 +21,66 @@ func (s *AssistantService) GetAllAssistants() ([]models.Assistant, error) {
 	return s.assistantRepo.GetAllAssistants()
 }
 
-func (s *AssistantService) GetAssistantById(id uint) (*models.Assistant, error) {
-	return s.assistantRepo.GetAssistantById(id)
+type TeachingHistoryEntry struct {
+	PeriodTitle string
+	Courses     []map[string]interface{}
+}
+
+func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, error) {
+	assistant, err := s.assistantRepo.GetAssistantById(id)
+	if err != nil {
+		return nil, err
+	}
+	if assistant == nil {
+		return nil, nil
+	}
+
+	groupedHistory := make(map[string]interface{})
+	groupedHistory["ID"] = assistant.ID
+	groupedHistory["Email"] = assistant.Email
+	groupedHistory["Bio"] = assistant.Bio
+	groupedHistory["FullName"] = assistant.FullName
+	groupedHistory["ProfilePicture"] = assistant.ProfilePicture
+	groupedHistory["Initial"] = assistant.Initial
+	groupedHistory["Generation"] = assistant.Generation
+	groupedHistory["Status"] = assistant.Status
+
+	var teachingHistoryEntries []TeachingHistoryEntry
+
+	for _, history := range assistant.TeachingHistory {
+		periodTitle := history.Period.PeriodTitle
+		courseData := map[string]interface{}{
+			"CourseTitle":       history.Course.CourseTitle,
+			"CourseCode":        history.Course.CourseCode,
+			"CourseDescription": history.Course.CourseDescription,
+		}
+
+		found := false
+		for i := range teachingHistoryEntries {
+			if teachingHistoryEntries[i].PeriodTitle == periodTitle {
+				teachingHistoryEntries[i].Courses = append(teachingHistoryEntries[i].Courses, courseData)
+				found = true
+				break
+			}
+		}
+		if !found {
+			teachingHistoryEntries = append(teachingHistoryEntries, TeachingHistoryEntry{
+				PeriodTitle: periodTitle,
+				Courses:     []map[string]interface{}{courseData},
+			})
+		}
+	}
+
+	sortedTeachingHistory := make([]map[string]interface{}, len(teachingHistoryEntries))
+	for i, entry := range teachingHistoryEntries {
+		sortedTeachingHistory[i] = map[string]interface{}{
+			"PeriodTitle": entry.PeriodTitle,
+			"Courses":     entry.Courses,
+		}
+	}
+
+	groupedHistory["TeachingHistory"] = sortedTeachingHistory
+	return groupedHistory, nil
 }
 
 func (s *AssistantService) CreateAssistant(email, bio, profile_picture, initial, generation string) (*models.Assistant, error) {

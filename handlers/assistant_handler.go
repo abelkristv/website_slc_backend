@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"sort"
 	"strconv"
@@ -149,12 +150,21 @@ func (h *AssistantHandler) GetAssistantById(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "Invalid assistant ID", http.StatusBadRequest)
 		return
 	}
+
 	user, err := h.assistantService.GetAssistantById(uint(id))
 	if err != nil {
 		http.Error(w, "Assistant not found", http.StatusNotFound)
+		return
 	}
 
-	json.NewEncoder(w).Encode(user)
+	// log.Print(user)
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		log.Printf("Error encoding response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 }
 
 func (h *AssistantHandler) CreateAssistant(w http.ResponseWriter, r *http.Request) {
