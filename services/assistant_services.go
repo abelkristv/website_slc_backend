@@ -79,7 +79,7 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 		}
 	}
 
-	groupedHistory["TeachingHistory"] = sortedTeachingHistory
+	groupedHistory["TeachingHistories"] = sortedTeachingHistory
 	return groupedHistory, nil
 }
 

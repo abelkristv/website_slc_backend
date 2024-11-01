@@ -30,8 +30,6 @@ type TokenResponse struct {
 var authToken TokenResponse
 var client *http.Client
 
-const BaseURL = "https://bluejack.binus.ac.id/lapi/api"
-
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file")
