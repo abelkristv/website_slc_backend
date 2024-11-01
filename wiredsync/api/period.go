@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/abelkristv/slc_website/wiredsync/api/config"
 )
 
 type Period struct {
@@ -16,7 +18,7 @@ type Period struct {
 type PeriodDataResponse []Period
 
 func FetchPeriods() ([]Period, error) {
-	url := "https://bluejack.binus.ac.id/lapi/api/Semester/GetSemestersWithActiveDate"
+	url := fmt.Sprintf("%sSemester/GetSemestersWithActiveDate", config.BaseURL)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/abelkristv/slc_website/wiredsync/api/config"
 )
 
 type EmailResponse struct {
@@ -15,7 +17,7 @@ type EmailResponse struct {
 }
 
 func FetchEmail(binusianID string) (string, error) {
-	url := fmt.Sprintf("https://bluejack.binus.ac.id/lapi/api/Assistant/GetBinusianByBinusianId?binusianId=%s", binusianID)
+	url := fmt.Sprintf("%sAssistant/GetBinusianByBinusianId?binusianId=%s", config.BaseURL, binusianID)
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
@@ -32,12 +34,9 @@ func FetchEmail(binusianID string) (string, error) {
 	}
 
 	for _, email := range emailData.Emails {
-		// if strings.HasSuffix(email.Email, ".ac.id") || strings.HasSuffix(email.Email, ".edu") {
 		return email.Email, nil
-		// }
 	}
 
-	// return "", fmt.Errorf("no valid email ending with .ac.id found")
 	return "", nil
 
 }

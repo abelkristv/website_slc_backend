@@ -66,13 +66,46 @@ func seedAssistant(db *gorm.DB) {
 	log.Println("Assistant table seeded successfully")
 }
 
+func seedSocialMedia(db *gorm.DB) {
+	socialMedias := []models.SocialMedia{
+		{
+			SocialMediaName:  "Instagram",
+			SocialMediaImage: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/2048px-Instagram_logo_2016.svg.png",
+		},
+		{
+			SocialMediaName:  "LinkedIn",
+			SocialMediaImage: "https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png",
+		},
+		{
+			SocialMediaName:  "Github",
+			SocialMediaImage: "https://cdn-icons-png.flaticon.com/512/25/25231.png",
+		},
+		{
+			SocialMediaName:  "Line",
+			SocialMediaImage: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/LINE_logo.svg/2048px-LINE_logo.svg.png",
+		},
+		{
+			SocialMediaName:  "Whatsapp",
+			SocialMediaImage: "https://static.vecteezy.com/system/resources/thumbnails/018/930/746/small/whatsapp-logo-whatsapp-icon-whatsapp-transparent-free-png.png",
+		},
+	}
+
+	for _, sm := range socialMedias {
+		err := db.Create(&sm).Error
+		if err != nil {
+			log.Fatalf("Failed to seed social media: %v", err)
+		}
+	}
+
+	log.Println("Social media table seeded successfully")
+}
+
 func SeedDatabase(db *gorm.DB) {
-	seedAssistant(db)
-	seedUsers(db)
+	seedSocialMedia(db)
 }
 
 func ClearDatabase(db *gorm.DB) {
-	tables := []string{"teaching_histories", "periods", "courses", "users", "assistants"}
+	tables := []string{"teaching_histories", "periods", "courses", "users", "assistants", "social_medias"}
 
 	for _, table := range tables {
 		err := db.Exec("DELETE FROM " + table).Error
@@ -83,6 +116,11 @@ func ClearDatabase(db *gorm.DB) {
 
 	}
 	err := db.Exec("ALTER SEQUENCE teaching_histories_id_seq RESTART WITH 1").Error
+	if err != nil {
+		log.Fatalf("Failed to reset sequence for users: %v", err)
+	}
+
+	err = db.Exec("ALTER SEQUENCE social_medias_id_seq RESTART WITH 1").Error
 	if err != nil {
 		log.Fatalf("Failed to reset sequence for users: %v", err)
 	}

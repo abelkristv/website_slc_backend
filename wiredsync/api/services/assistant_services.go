@@ -180,8 +180,6 @@ func insertPeriod(db *gorm.DB) []api.Period {
 		"2006-01-02T15:04:05",
 	}
 
-	var createdPeriods []models.Period
-
 	for _, period := range periods {
 		var start, end time.Time
 		var parseErr error
@@ -229,7 +227,6 @@ func insertPeriod(db *gorm.DB) []api.Period {
 		}
 		log.Printf("Created period: %s", periodModel.PeriodTitle)
 
-		createdPeriods = append(createdPeriods, periodModel)
 	}
 
 	return periods

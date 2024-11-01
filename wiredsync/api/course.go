@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/abelkristv/slc_website/wiredsync/api/config"
 )
 
 type CourseOutline struct {
 	CourseOutlineId string `json:"CourseOutlineId"`
 	Name            string `json:"Name"`
-	Subjects        any    `json:"Subjects"` // If Subjects is expected to contain more specific types, update this type accordingly
+	Subjects        any    `json:"Subjects"`
 }
 
 type CourseDescription struct {
@@ -17,7 +19,7 @@ type CourseDescription struct {
 }
 
 func FetchCourseOutlines(token string) ([]CourseOutline, error) {
-	url := "https://bluejack.binus.ac.id/lapi/api/Course/GetCourseOutlines"
+	url := fmt.Sprintf("%sCourse/GetCourseOutlines", config.BaseURL)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -45,7 +47,7 @@ func FetchCourseOutlines(token string) ([]CourseOutline, error) {
 }
 
 func FetchCourseDescription(courseId, token string) (CourseDescription, error) {
-	url := fmt.Sprintf("https://bluejack.binus.ac.id/lapi/api/Course/GetCourseOutlineDetail?courseOutlineId=%s", courseId)
+	url := fmt.Sprintf("%sCourse/GetCourseOutlineDetail?courseOutlineId=%s", config.BaseURL, courseId)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return CourseDescription{}, err

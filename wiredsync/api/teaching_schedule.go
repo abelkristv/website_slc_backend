@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+
+	"github.com/abelkristv/slc_website/wiredsync/api/config"
 )
 
 type TeachingSchedule struct {
@@ -33,8 +35,8 @@ type TeachingSchedule struct {
 
 func FetchTeachingHistory(username, semesterId, token, assistantName, periodName string) ([]TeachingSchedule, error) {
 	apiURL := fmt.Sprintf(
-		"https://bluejack.binus.ac.id/lapi/api/Assistant/GetClassTransactionByAssistantUsername?username=%s&semesterId=%s&startDate=&endDate=",
-		url.QueryEscape(username), url.QueryEscape(semesterId),
+		"%sAssistant/GetClassTransactionByAssistantUsername?username=%s&semesterId=%s&startDate=&endDate=",
+		config.BaseURL, url.QueryEscape(username), url.QueryEscape(semesterId),
 	)
 
 	log.Printf("Fetching teaching history data for %s- %s", assistantName, periodName)

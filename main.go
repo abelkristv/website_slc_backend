@@ -18,7 +18,6 @@ func main() {
 	router := mux.NewRouter()
 	db, err := database.InitializeDB()
 
-	// Handle command line arguments for seeding or clearing the database
 	for _, arg := range os.Args {
 		if arg == "--seed" {
 			database.SeedDatabase(db)

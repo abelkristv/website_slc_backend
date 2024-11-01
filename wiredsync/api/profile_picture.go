@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/abelkristv/slc_website/wiredsync/api/config"
 )
 
-// FetchProfilePicture fetches the profile picture from the given PictureId and returns its base64 representation
 func FetchProfilePicture(pictureId string) (string, error) {
-	url := fmt.Sprintf("https://bluejack.binus.ac.id/lapi/api/Account/GetThumbnail?id=%s", pictureId)
+	url := fmt.Sprintf("%sAccount/GetThumbnail?id=%s", config.BaseURL, pictureId)
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
@@ -20,13 +21,11 @@ func FetchProfilePicture(pictureId string) (string, error) {
 		return "", fmt.Errorf("failed to fetch profile picture: %s", resp.Status)
 	}
 
-	// Read the image data
 	imageData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
 
-	// Convert to base64
 	encoded := base64.StdEncoding.EncodeToString(imageData)
 	return encoded, nil
 }

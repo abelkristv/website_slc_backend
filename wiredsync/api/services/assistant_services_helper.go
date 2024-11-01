@@ -36,7 +36,7 @@ func processUser(db *gorm.DB, s *AssistantService, user api_models.Assistant, st
 	}
 
 	if result.RowsAffected > 0 {
-		return false // User already exists
+		return false
 	}
 
 	email := fetchEmail(user.BinusianID)
