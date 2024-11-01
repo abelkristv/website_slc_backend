@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/wiredsync/api"
@@ -61,36 +62,57 @@ func insertCourseOutlines(db *gorm.DB) {
 		log.Fatalf("Failed to fetch course outlines: %v", err)
 	}
 
+	// Create a semaphore channel to limit concurrency
+	semaphore := make(chan struct{}, 500)
+	var wg sync.WaitGroup
+
 	for _, courseOutline := range courseOutlines {
-		parts := strings.SplitN(courseOutline.Name, "-", 2)
-		if len(parts) < 2 {
-			log.Printf("Unexpected course format for %s. Skipping...", courseOutline.Name)
-			continue
-		}
+		wg.Add(1)
+		semaphore <- struct{}{} // Acquire a slot
 
-		courseCode := parts[0]
-		courseTitle := parts[1]
+		go func(courseOutline api.CourseOutline) {
+			defer wg.Done()
+			defer func() { <-semaphore }() // Release the slot
 
-		course := models.Course{
-			CourseCode:  courseCode,
-			CourseTitle: courseTitle,
-		}
+			parts := strings.SplitN(courseOutline.Name, "-", 2)
+			if len(parts) < 2 {
+				log.Printf("Unexpected course format for %s. Skipping...", courseOutline.Name)
+				return
+			}
 
-		var existingCourse models.Course
-		if err := db.Where("course_code = ?", course.CourseCode).First(&existingCourse).Error; err != nil && err != gorm.ErrRecordNotFound {
-			log.Fatalf("Error querying course: %v", err)
-		}
+			courseCode := parts[0]
+			courseTitle := parts[1]
 
-		if existingCourse.ID != 0 {
-			log.Printf("Course %s already exists, skipping...", course.CourseTitle)
-			continue
-		}
+			courseDescription, err := api.FetchCourseDescription(courseOutline.CourseOutlineId, authToken.AccessToken)
+			if err != nil {
+				log.Printf("Failed to fetch course description for course %s: %v", courseCode, err)
+				return
+			}
 
-		if err := db.Create(&course).Error; err != nil {
-			log.Fatalf("Failed to create course: %v", err)
-		}
-		log.Printf("Created course: %s with code: %s", course.CourseTitle, course.CourseCode)
+			course := models.Course{
+				CourseCode:        courseCode,
+				CourseTitle:       courseTitle,
+				CourseDescription: courseDescription.CourseDescription,
+			}
+
+			var existingCourse models.Course
+			if err := db.Where("course_code = ?", course.CourseCode).First(&existingCourse).Error; err != nil && err != gorm.ErrRecordNotFound {
+				log.Fatalf("Error querying course: %v", err)
+			}
+
+			if existingCourse.ID != 0 {
+				log.Printf("Course %s already exists, skipping...", course.CourseTitle)
+				return
+			}
+
+			if err := db.Create(&course).Error; err != nil {
+				log.Fatalf("Failed to create course: %v", err)
+			}
+			log.Printf("Created course: %s with code: %s", course.CourseTitle, course.CourseCode)
+		}(courseOutline)
 	}
+
+	wg.Wait()
 }
 
 func createAuthenticatedClient(username, password string) (*http.Client, error) {
