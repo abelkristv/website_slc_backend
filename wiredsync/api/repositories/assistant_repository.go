@@ -64,7 +64,7 @@ func (a *assistantRepository) FetchAssistantRoles(username string) ([]string, er
 }
 
 func (a *assistantRepository) FetchAssistantEmail(binusianID string) (string, error) {
-	url := fmt.Sprintf("%sAssistant/GetBinusianByBinusianId?binusianId=%s", config.BaseURL, binusianID)
+	url := fmt.Sprintf("%s/Assistant/GetBinusianByBinusianId?binusianId=%s", config.BaseURL, binusianID)
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err

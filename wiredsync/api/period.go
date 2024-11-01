@@ -18,7 +18,7 @@ type Period struct {
 type PeriodDataResponse []Period
 
 func FetchPeriods() ([]Period, error) {
-	url := fmt.Sprintf("%sSemester/GetSemestersWithActiveDate", config.BaseURL)
+	url := fmt.Sprintf("%s/Semester/GetSemestersWithActiveDate", config.BaseURL)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err

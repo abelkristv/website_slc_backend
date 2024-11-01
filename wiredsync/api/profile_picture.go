@@ -10,7 +10,7 @@ import (
 )
 
 func FetchProfilePicture(pictureId string) (string, error) {
-	url := fmt.Sprintf("%sAccount/GetThumbnail?id=%s", config.BaseURL, pictureId)
+	url := fmt.Sprintf("%s/Account/GetThumbnail?id=%s", config.BaseURL, pictureId)
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err

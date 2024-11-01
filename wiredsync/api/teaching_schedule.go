@@ -35,7 +35,7 @@ type TeachingSchedule struct {
 
 func FetchTeachingHistory(username, semesterId, token, assistantName, periodName string) ([]TeachingSchedule, error) {
 	apiURL := fmt.Sprintf(
-		"%sAssistant/GetClassTransactionByAssistantUsername?username=%s&semesterId=%s&startDate=&endDate=",
+		"%s/Assistant/GetClassTransactionByAssistantUsername?username=%s&semesterId=%s&startDate=&endDate=",
 		config.BaseURL, url.QueryEscape(username), url.QueryEscape(semesterId),
 	)
 

@@ -19,7 +19,7 @@ type CourseDescription struct {
 }
 
 func FetchCourseOutlines(token string) ([]CourseOutline, error) {
-	url := fmt.Sprintf("%sCourse/GetCourseOutlines", config.BaseURL)
+	url := fmt.Sprintf("%s/Course/GetCourseOutlines", config.BaseURL)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func FetchCourseOutlines(token string) ([]CourseOutline, error) {
 }
 
 func FetchCourseDescription(courseId, token string) (CourseDescription, error) {
-	url := fmt.Sprintf("%sCourse/GetCourseOutlineDetail?courseOutlineId=%s", config.BaseURL, courseId)
+	url := fmt.Sprintf("%s/Course/GetCourseOutlineDetail?courseOutlineId=%s", config.BaseURL, courseId)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return CourseDescription{}, err
