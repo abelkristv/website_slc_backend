@@ -1,7 +1,6 @@
 package services
 
 import (
-	"log"
 	"time"
 
 	"github.com/abelkristv/slc_website/models"
@@ -50,8 +49,7 @@ func (s *assistantPositionService) DeleteAssistantPosition(assistantPosition *mo
 }
 
 func (s *assistantPositionService) CreatePositionByAssistant(assistantId int, positionName, positionDesc string, startDate, endDate time.Time) (*models.AssistantPosition, error) {
-	log.Print(positionName)
-	log.Print(positionDesc)
+
 	position := models.Position{
 		Name:        positionName,
 		Description: positionDesc,

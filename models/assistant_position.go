@@ -8,7 +8,7 @@ import (
 
 type AssistantPosition struct {
 	gorm.Model
-	AssistantId int `gorm:"uniqueIndex"`
+	AssistantId int
 	PositionId  int `gorm:"uniqueIndex"`
 	StartDate   time.Time
 	EndDate     time.Time
