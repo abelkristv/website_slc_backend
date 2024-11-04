@@ -84,6 +84,7 @@ func (s *AssistantService) FetchAssistant(db *gorm.DB, authToken TokenResponse) 
 	wg.Wait()
 
 	periods := insertPeriod(db)
+
 	for _, assistant := range assistant_data.Active {
 		wg.Add(1)
 		go func() {
@@ -93,6 +94,8 @@ func (s *AssistantService) FetchAssistant(db *gorm.DB, authToken TokenResponse) 
 					log.Printf("Username %s does not match the required format. Skipping...\n", assistant.Username)
 					continue
 				}
+				// roles := s.FetchAssistantRoles(assistant.Username)
+				// log.Printf("Assistant %s has roles: %v", assistant.Username, roles)
 
 				schedules, err := api.FetchTeachingHistory(assistant.Username, period.SemesterID, authToken.AccessToken, assistant.Name, period.Description)
 				if err != nil {
@@ -148,6 +151,10 @@ func (s *AssistantService) FetchAssistant(db *gorm.DB, authToken TokenResponse) 
 					if err := db.Create(&teachingHistory).Error; err != nil {
 						log.Printf("Failed to create teaching history: %v", err)
 					} else {
+						// for _, assistant := range assistant_data.Active {
+						// 	roles := s.FetchAssistantRoles(assistant.Username)
+						// 	log.Printf("Assistant %s has roles: %v", assistant.Username, roles)
+						// }
 						log.Printf("Inserted teaching history for assistant %s for course %s in period %s", assistant.Username, courseCode, period.Description)
 					}
 				}

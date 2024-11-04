@@ -84,11 +84,24 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 
 	var positionEntries []map[string]interface{}
 	for _, position := range assistant.AssistantPosition {
+		var startDate string
+		if position.StartDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
+			startDate = position.StartDate.Format("2006-01-02 15:04:05-07")
+		} else {
+			startDate = ""
+		}
+		var endDate string
+		if position.EndDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
+			startDate = position.EndDate.Format("2006-01-02 15:04:05-07")
+		} else {
+			startDate = ""
+		}
+
 		positionData := map[string]interface{}{
 			"PositionName":        position.Position.Name,
-			"PositionDescription": position.Position.Description,
-			"StartDate":           position.StartDate,
-			"EndDate":             position.EndDate,
+			"PositionDescription": position.Description,
+			"StartDate":           startDate,
+			"EndDate":             endDate,
 		}
 		positionEntries = append(positionEntries, positionData)
 	}

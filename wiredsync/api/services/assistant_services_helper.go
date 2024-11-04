@@ -31,24 +31,47 @@ func processUser(db *gorm.DB, s *AssistantService, user api_models.Assistant, st
 	var foundUser models.User
 	result := db.Where("username = ?", user.Username).First(&foundUser)
 
+	roles := s.FetchAssistantRoles(user.Username)
+
 	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 		log.Fatalf("Error querying user: %v", result.Error)
 	}
 
 	if result.RowsAffected > 0 {
+		for _, role := range roles {
+			var positionModel models.Position
+			if err := db.Where("name = ?", role).First(&positionModel).Error; err != nil {
+				log.Printf("Position not found for title %s: %v", positionModel.Name, err)
+				log.Printf("Creating position : %s", positionModel.Name)
+				positionModel = models.Position{
+					Name: role,
+				}
+				if err := db.Create(&positionModel).Error; err != nil {
+					log.Fatalf("Failed to create position: %v", err)
+				}
+
+			}
+			assistantPosition := models.AssistantPosition{
+				AssistantId: int(foundUser.ID),
+				PositionId:  int(positionModel.ID),
+			}
+
+			if err := db.Create(&assistantPosition).Error; err != nil {
+				log.Fatalf("Failed to create assistantPosition: %v", err)
+			}
+		}
 		return false
 	}
 
 	email := fetchEmail(user.BinusianID)
-	roles := s.FetchAssistantRoles(user.Username)
 
-	assistant := createAssistant(db, user, email, status)
+	assistant := createAssistant(db, user, email, status, roles)
 	createUser(db, user, roles, int(assistant.ID))
 
 	return true
 }
 
-func createAssistant(db *gorm.DB, user api_models.Assistant, email string, status string) models.Assistant {
+func createAssistant(db *gorm.DB, user api_models.Assistant, email string, status string, roles []string) models.Assistant {
 	var initial, generation string
 	profilePictureURL := fmt.Sprintf("https://bluejack.binus.ac.id/lapi/api/Account/GetThumbnail?id=%s", user.PictureID)
 
@@ -71,6 +94,31 @@ func createAssistant(db *gorm.DB, user api_models.Assistant, email string, statu
 
 	if err := db.Create(&assistant).Error; err != nil {
 		log.Fatalf("Failed to create assistant: %v", err)
+	}
+
+	log.Printf("Assistant have this roles : %s", roles)
+
+	for _, role := range roles {
+		var positionModel models.Position
+		if err := db.Where("name = ?", role).First(&positionModel).Error; err != nil {
+			log.Printf("Position not found for title %s: %v", positionModel.Name, err)
+			log.Printf("Creating position : %s", positionModel.Name)
+			positionModel = models.Position{
+				Name: role,
+			}
+			if err := db.Create(&positionModel).Error; err != nil {
+				log.Fatalf("Failed to create position: %v", err)
+			}
+
+		}
+		assistantPosition := models.AssistantPosition{
+			AssistantId: int(assistant.ID),
+			PositionId:  int(positionModel.ID),
+		}
+
+		if err := db.Create(&assistantPosition).Error; err != nil {
+			log.Fatalf("Failed to create assistantPosition: %v", err)
+		}
 	}
 
 	return assistant

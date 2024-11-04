@@ -51,8 +51,7 @@ func (s *assistantPositionService) DeleteAssistantPosition(assistantPosition *mo
 func (s *assistantPositionService) CreatePositionByAssistant(assistantId int, positionName, positionDesc string, startDate, endDate time.Time) (*models.AssistantPosition, error) {
 
 	position := models.Position{
-		Name:        positionName,
-		Description: positionDesc,
+		Name: positionName,
 	}
 
 	if err := s.positionRepo.CreatePosition(&position); err != nil {
@@ -62,6 +61,7 @@ func (s *assistantPositionService) CreatePositionByAssistant(assistantId int, po
 	assistantPosition := models.AssistantPosition{
 		AssistantId: assistantId,
 		PositionId:  int(position.ID),
+		Description: positionDesc,
 		StartDate:   startDate,
 		EndDate:     endDate,
 	}
