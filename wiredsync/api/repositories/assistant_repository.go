@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/abelkristv/slc_website/wiredsync/api/config"
 	api_models "github.com/abelkristv/slc_website/wiredsync/api/models"
+	"github.com/abelkristv/slc_website/wiredsync/config"
 )
 
 type AssistantRepository interface {

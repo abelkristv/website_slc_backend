@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"log"
+
 	"github.com/abelkristv/slc_website/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -40,8 +42,8 @@ func (r *assistantRepository) GetAssistantById(id uint) (*models.Assistant, erro
 	var assistant models.Assistant
 	err := r.db.Preload("TeachingHistory", func(db *gorm.DB) *gorm.DB {
 		return db.Order("period_id")
-	}).Preload("TeachingHistory.Period").Preload("TeachingHistory.Course").Preload("AssistantSocialMedia").Preload("AssistantSocialMedia.SocialMedia").First(&assistant, id).Error
-
+	}).Preload("AssistantPosition").Preload("AssistantPosition.Position").Preload("TeachingHistory.Period").Preload("TeachingHistory.Course").Preload("AssistantSocialMedia").Preload("AssistantSocialMedia.SocialMedia").First(&assistant, id).Error
+	log.Print(assistant.AssistantPosition)
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

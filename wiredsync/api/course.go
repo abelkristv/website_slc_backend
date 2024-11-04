@@ -5,20 +5,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/abelkristv/slc_website/wiredsync/api/config"
+	"github.com/abelkristv/slc_website/wiredsync/api/course"
+	"github.com/abelkristv/slc_website/wiredsync/config"
 )
-
-type CourseOutline struct {
-	CourseOutlineId string `json:"CourseOutlineId"`
-	Name            string `json:"Name"`
-	Subjects        any    `json:"Subjects"`
-}
 
 type CourseDescription struct {
 	CourseDescription string `json:"CourseDescription"`
 }
 
-func FetchCourseOutlines(token string) ([]CourseOutline, error) {
+func FetchCourseOutlines(token string) ([]course.GetCourseOutlineResponse, error) {
 	url := fmt.Sprintf("%s/Course/GetCourseOutlines", config.BaseURL)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -38,7 +33,7 @@ func FetchCourseOutlines(token string) ([]CourseOutline, error) {
 		return nil, fmt.Errorf("failed to fetch course outlines: %s", resp.Status)
 	}
 
-	var courseOutlines []CourseOutline
+	var courseOutlines []course.GetCourseOutlineResponse
 	if err := json.NewDecoder(resp.Body).Decode(&courseOutlines); err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"log"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/repositories"
@@ -80,6 +81,21 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	}
 
 	groupedHistory["TeachingHistories"] = sortedTeachingHistory
+
+	var positionEntries []map[string]interface{}
+	for _, position := range assistant.AssistantPosition {
+		positionData := map[string]interface{}{
+			"PositionName":        position.Position.Name,
+			"PositionDescription": position.Position.Description,
+			"StartDate":           position.StartDate,
+			"EndDate":             position.EndDate,
+		}
+		positionEntries = append(positionEntries, positionData)
+	}
+	groupedHistory["Positions"] = positionEntries
+
+	log.Print(positionEntries)
+
 	return groupedHistory, nil
 }
 

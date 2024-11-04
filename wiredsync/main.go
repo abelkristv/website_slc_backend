@@ -1,34 +1,24 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"net/http/cookiejar"
-	"net/url"
 	"os"
 	"strings"
 	"sync"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/wiredsync/api"
+	"github.com/abelkristv/slc_website/wiredsync/api/course"
 	api_repositories "github.com/abelkristv/slc_website/wiredsync/api/repositories"
 	api_service "github.com/abelkristv/slc_website/wiredsync/api/services"
+	"github.com/abelkristv/slc_website/wiredsync/api/token"
+	"github.com/abelkristv/slc_website/wiredsync/config"
 	"github.com/abelkristv/slc_website/wiredsync/database"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
-type TokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	TokenType    string `json:"token_type"`
-	ExpiresIn    int    `json:"expires_in"`
-	RefreshToken string `json:"refresh_token"`
-}
-
-var authToken TokenResponse
 var client *http.Client
 
 func main() {
@@ -42,7 +32,7 @@ func main() {
 		log.Fatalf("USERNAME_WIREDSYNC or PASSWORD_WIREDSYNC is not set in .env")
 	}
 	var err error
-	client, err = createAuthenticatedClient(username, password)
+	client, err = token.CreateAuthenticatedClient(username, password)
 	if err != nil {
 		log.Fatalf("Login failed: %v", err)
 	}
@@ -50,14 +40,14 @@ func main() {
 	db := setupDatabase()
 	insertCourseOutlines(db)
 
-	userRepository := api_repositories.NewAssistantRepository() // Concrete repository implementation
+	userRepository := api_repositories.NewAssistantRepository()
 	userService := api_service.NewUserService(userRepository)
-	userService.FetchAssistant(db, api_service.TokenResponse(authToken))
+	userService.FetchAssistant(db, api_service.TokenResponse(config.AuthToken))
 
 }
 
 func insertCourseOutlines(db *gorm.DB) {
-	courseOutlines, err := api.FetchCourseOutlines(authToken.AccessToken)
+	courseOutlines, err := api.FetchCourseOutlines(config.AuthToken.AccessToken)
 	if err != nil {
 		log.Fatalf("Failed to fetch course outlines: %v", err)
 	}
@@ -69,7 +59,7 @@ func insertCourseOutlines(db *gorm.DB) {
 		wg.Add(1)
 		semaphore <- struct{}{}
 
-		go func(courseOutline api.CourseOutline) {
+		go func(courseOutline course.GetCourseOutlineResponse) {
 			defer wg.Done()
 			defer func() { <-semaphore }()
 
@@ -82,7 +72,7 @@ func insertCourseOutlines(db *gorm.DB) {
 			courseCode := parts[0]
 			courseTitle := parts[1]
 
-			courseDescription, err := api.FetchCourseDescription(courseOutline.CourseOutlineId, authToken.AccessToken)
+			courseDescription, err := api.FetchCourseDescription(courseOutline.CourseOutlineId, config.AuthToken.AccessToken)
 			if err != nil {
 				log.Printf("Failed to fetch course description for course %s: %v", courseCode, err)
 				return
@@ -112,41 +102,6 @@ func insertCourseOutlines(db *gorm.DB) {
 	}
 
 	wg.Wait()
-}
-
-func createAuthenticatedClient(username, password string) (*http.Client, error) {
-	jar, _ := cookiejar.New(nil)
-	client := &http.Client{Jar: jar}
-
-	loginURL := "https://bluejack.binus.ac.id/lapi/api/Account/LogOn"
-	data := url.Values{}
-	data.Set("username", username)
-	data.Set("password", password)
-
-	req, err := http.NewRequest("POST", loginURL, bytes.NewBufferString(data.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("login failed: %s", resp.Status)
-	}
-
-	var tokenResponse TokenResponse
-	if err := json.NewDecoder(resp.Body).Decode(&tokenResponse); err != nil {
-		return nil, fmt.Errorf("failed to parse token response: %v", err)
-	}
-
-	authToken = tokenResponse
-	log.Println("Login successful, token stored.")
-	return client, nil
 }
 
 func setupDatabase() *gorm.DB {

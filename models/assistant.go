@@ -13,6 +13,6 @@ type Assistant struct {
 	Status               string                 `gorm:"size:10"`
 	TeachingHistory      []TeachingHistory      `gorm:"foreignKey:AssistantId"`
 	AssistantSocialMedia []AssistantSocialMedia `gorm:"foreignKey:AssistantId"`
-	// CarrerPath      []CarrerPath      `gorm:"foreignKey:AssistantId"`
+	AssistantPosition    []AssistantPosition    `gorm:"foreignKey:AssistantId"`
 	// Award           []Award           `gorm:"foreignKey:AssistantId"`
 }

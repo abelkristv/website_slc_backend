@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/abelkristv/slc_website/wiredsync/api/config"
+	"github.com/abelkristv/slc_website/wiredsync/config"
 )
 
 type Period struct {

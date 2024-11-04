@@ -31,14 +31,17 @@ func main() {
 		log.Fatal("Could not connect to the database")
 	}
 
+	// User setup
 	userRepo := repositories.NewUserRepository(db)
 	userService := services.NewUserService(userRepo)
 	userHandler := handlers.NewUserHandler(userService)
 
+	// Assistant setup
 	assistantRepo := repositories.NewAssistantRepository(db)
 	assistantService := services.NewAssistantService(assistantRepo)
 	assistantHandler := handlers.NewAssistantHandler(assistantService)
 
+	// Event setup
 	eventRepo := repositories.NewEventRepository(db)
 	eventService := services.NewEventService(eventRepo)
 	eventHandler := handlers.NewEventHandler(eventService)
@@ -50,6 +53,14 @@ func main() {
 	teachingHistoryRepo := repositories.NewTeachingHistoryRepository(db)
 	teachingHistoryService := services.NewTeachingHistoryService(teachingHistoryRepo)
 	teachingHistoryHandler := handlers.NewTeachingHistoryHandler(teachingHistoryService)
+
+	positionRepo := repositories.NewPositionRepository(db)
+	positionService := services.NewPositionService(positionRepo)
+	positionHandler := handlers.NewPositionHandler(positionService)
+
+	assistantPositionRepo := repositories.NewAssistantPositionRepository(db)
+	assistantPositionService := services.NewAssistantPositionService(assistantPositionRepo, positionRepo)
+	assistantPositionHandler := handlers.NewAssistantPositionHandler(assistantPositionService)
 
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
@@ -65,7 +76,10 @@ func main() {
 	routes.RegisterEventRoutes(router, eventHandler)
 	routes.RegisterPeriodRoutes(router, periodHandler)
 	routes.RegisterTeachingHistoryRoutes(router, teachingHistoryHandler)
+	routes.RegisterPositionRoutes(router, positionHandler)
+	routes.RegisterAssistantPositionRoutes(router, assistantPositionHandler)
 
 	log.Println("Starting server on :8888")
 	log.Fatal(http.ListenAndServe(":8888", handler))
+
 }

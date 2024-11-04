@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/abelkristv/slc_website/wiredsync/api/config"
+	"github.com/abelkristv/slc_website/wiredsync/config"
 )
 
 func FetchProfilePicture(pictureId string) (string, error) {

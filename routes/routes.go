@@ -47,3 +47,18 @@ func RegisterTeachingHistoryRoutes(router *mux.Router, teachingHistoryHandler *h
 	router.HandleFunc("/teaching-history", teachingHistoryHandler.GetTeachingHistoryByAssistantAndPeriod).Methods("GET")
 	router.HandleFunc("/teaching-history/grouped", teachingHistoryHandler.GetTeachingHistoryGroupedByPeriod).Methods("GET")
 }
+
+func RegisterPositionRoutes(router *mux.Router, positionHandler *handlers.PositionHandler) {
+	router.HandleFunc("/positions", positionHandler.GetAllPositions).Methods("GET")
+	router.HandleFunc("/positions/{id}", positionHandler.GetPositionById).Methods("GET")
+	router.HandleFunc("/positions", positionHandler.CreatePosition).Methods("POST")
+	router.HandleFunc("/positions/{id}", positionHandler.UpdatePosition).Methods("PUT")
+	router.HandleFunc("/positions/{id}", positionHandler.DeletePosition).Methods("DELETE")
+}
+func RegisterAssistantPositionRoutes(router *mux.Router, handler *handlers.AssistantPositionHandler) {
+	router.HandleFunc("/assistant_positions", handler.CreatePositionByAssistant).Methods("POST")
+	router.HandleFunc("/assistant_positions", handler.GetAllAssistantPositions).Methods("GET")
+	router.HandleFunc("/assistant_positions/{id:[0-9]+}", handler.GetAssistantPositionById).Methods("GET")
+	router.HandleFunc("/assistant_positions/{id:[0-9]+}", handler.UpdateAssistantPosition).Methods("PUT")
+	router.HandleFunc("/assistant_positions/{id:[0-9]+}", handler.DeleteAssistantPosition).Methods("DELETE")
+}

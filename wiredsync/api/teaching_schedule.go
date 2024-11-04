@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/abelkristv/slc_website/wiredsync/api/config"
+	"github.com/abelkristv/slc_website/wiredsync/config"
 )
 
 type TeachingSchedule struct {

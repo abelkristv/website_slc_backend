@@ -35,14 +35,13 @@ func (s *AssistantService) FetchAssistant(db *gorm.DB, authToken TokenResponse) 
 	semaphore := make(chan struct{}, 30)
 	var wg sync.WaitGroup
 
-	// Process active assistants
 	for _, assistant := range assistant_data.Active {
 		wg.Add(1)
-		semaphore <- struct{}{} // Acquire a slot
+		semaphore <- struct{}{}
 
 		go func(assistant api_models.Assistant) {
 			defer wg.Done()
-			defer func() { <-semaphore }() // Release the slot
+			defer func() { <-semaphore }()
 
 			log.Print(assistant.Username)
 			if !isValidUsername(assistant.Username) {
@@ -59,14 +58,13 @@ func (s *AssistantService) FetchAssistant(db *gorm.DB, authToken TokenResponse) 
 		}(assistant)
 	}
 
-	// Process inactive assistants
 	for _, assistant := range assistant_data.Inactive {
 		wg.Add(1)
-		semaphore <- struct{}{} // Acquire a slot
+		semaphore <- struct{}{}
 
 		go func(assistant api_models.Assistant) {
 			defer wg.Done()
-			defer func() { <-semaphore }() // Release the slot
+			defer func() { <-semaphore }()
 
 			log.Print(assistant.Username)
 			if !isValidUsername(assistant.Username) {
@@ -83,7 +81,7 @@ func (s *AssistantService) FetchAssistant(db *gorm.DB, authToken TokenResponse) 
 		}(assistant)
 	}
 
-	wg.Wait() // Wait for all goroutines to finish
+	wg.Wait()
 
 	periods := insertPeriod(db)
 	for _, assistant := range assistant_data.Active {
