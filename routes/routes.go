@@ -75,3 +75,11 @@ func RegisterAssistantPositionRoutes(router *mux.Router, handler *handlers.Assis
 	secured.HandleFunc("/assistant_positions/{id:[0-9]+}", handler.UpdateAssistantPosition).Methods("PUT")
 	secured.HandleFunc("/assistant_positions/{id:[0-9]+}", handler.DeleteAssistantPosition).Methods("DELETE")
 }
+
+func RegisterContactUsRoutes(router *mux.Router, contactUsHandler *handlers.ContactUsHandler) {
+	router.HandleFunc("/contacts", contactUsHandler.GetAllContacts).Methods("GET")
+	router.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.GetContactById).Methods("GET")
+	router.HandleFunc("/contacts", contactUsHandler.CreateContact).Methods("POST")
+	router.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.UpdateContact).Methods("PUT")
+	router.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.DeleteContact).Methods("DELETE")
+}

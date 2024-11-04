@@ -62,6 +62,10 @@ func main() {
 	assistantPositionService := services.NewAssistantPositionService(assistantPositionRepo, positionRepo)
 	assistantPositionHandler := handlers.NewAssistantPositionHandler(assistantPositionService)
 
+	contactUsRepo := repositories.NewContactUsRepository(db)
+	contactUsService := services.NewContactUsService(contactUsRepo)
+	contactUsHandler := handlers.NewContactUsHandler(contactUsService)
+
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
@@ -78,6 +82,7 @@ func main() {
 	routes.RegisterTeachingHistoryRoutes(router, teachingHistoryHandler)
 	routes.RegisterPositionRoutes(router, positionHandler)
 	routes.RegisterAssistantPositionRoutes(router, assistantPositionHandler)
+	routes.RegisterContactUsRoutes(router, contactUsHandler)
 
 	log.Println("Starting server on :8888")
 	log.Fatal(http.ListenAndServe(":8888", handler))
