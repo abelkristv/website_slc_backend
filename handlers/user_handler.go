@@ -164,18 +164,51 @@ func (h *UserHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	// Set the cookie's expiration date to the past to invalidate it
 	http.SetCookie(w, &http.Cookie{
-		Name:     "token",         // Name of the cookie
-		Value:    "",              // Clear the token
-		Path:     "/",             // Cookie path
-		Expires:  time.Unix(0, 0), // Set expiration date to the past
-		HttpOnly: true,            // Make it HTTP-only
-		Secure:   true,            // Use secure flag if you're using HTTPS
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	})
 
-	// Respond with a message indicating successful logout
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Successfully logged out"))
+}
+
+func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+
+	type ChangePasswordRequest struct {
+		OldPassword        string `json:"old_password"`
+		NewPassword        string `json:"new_password"`
+		ConfirmNewPassword string `json:"confirm_new_password"`
+	}
+
+	userID, ok := r.Context().Value(middleware.ContextUserIDKey).(uint)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req ChangePasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.NewPassword != req.ConfirmNewPassword {
+		http.Error(w, "New password and confirm new password do not match", http.StatusBadRequest)
+		return
+	}
+
+	err := h.userService.ChangePassword(userID, req.OldPassword, req.NewPassword)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Password changed successfully"))
 }

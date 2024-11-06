@@ -152,3 +152,41 @@ func (s *UserService) Login(username, password string) (string, *UserResponse, e
 
 	return tokenString, userResponse, nil
 }
+
+func (s *UserService) ChangePassword(userID uint, oldPassword, newPassword string) error {
+	user, err := s.userRepo.GetUserByID(userID)
+	if err != nil {
+		return errors.New("user not found")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword))
+	if err != nil {
+		return errors.New("invalid old password")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(newPassword))
+	if err == nil {
+		return errors.New("new password must not be same with old password")
+	}
+
+	if len(newPassword) < 8 {
+		return errors.New("new password must be at least 8 characters long")
+	}
+
+	// if !isValidPassword(newPassword) {
+	// 	return errors.New("new password must contain at least one number and one special character")
+	// }
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("failed to hash password")
+	}
+
+	user.Password = string(hashedPassword)
+	err = s.userRepo.UpdateUser(user)
+	if err != nil {
+		return errors.New("failed to update password")
+	}
+
+	return nil
+}
