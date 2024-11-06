@@ -15,17 +15,21 @@ const ContextUserIDKey = "id"
 
 func TokenValid(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenStr := r.Header.Get("Authorization")
-		if tokenStr == "" {
-			http.Error(w, "Authorization header missing", http.StatusUnauthorized)
+		// Retrieve the JWT token from the cookie
+		cookie, err := r.Cookie("token") // Use the cookie's name, such as "auth_token"
+		if err != nil {
+			http.Error(w, "Authorization cookie missing", http.StatusUnauthorized)
 			return
 		}
 
+		// Parse and validate the JWT token
+		tokenStr := cookie.Value
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+			// Ensure the token is signed with the correct algorithm
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, http.ErrNotSupported
 			}
-			return jwtKey, nil
+			return jwtKey, nil // Replace with your actual secret key
 		})
 
 		if err != nil || !token.Valid {
@@ -33,6 +37,7 @@ func TokenValid(next http.Handler) http.Handler {
 			return
 		}
 
+		// Extract the claims from the token
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 			log.Print(claims["id"])
 
@@ -47,12 +52,14 @@ func TokenValid(next http.Handler) http.Handler {
 				return
 			}
 
+			// Convert the user ID to uint
 			userID, err := strconv.Atoi(userIDStr)
 			if err != nil {
 				http.Error(w, "Invalid user ID", http.StatusUnauthorized)
 				return
 			}
 
+			// Store the user ID in the request context
 			ctx := context.WithValue(r.Context(), ContextUserIDKey, uint(userID))
 			r = r.WithContext(ctx)
 		} else {
@@ -60,6 +67,7 @@ func TokenValid(next http.Handler) http.Handler {
 			return
 		}
 
+		// Call the next handler
 		next.ServeHTTP(w, r)
 	})
 }

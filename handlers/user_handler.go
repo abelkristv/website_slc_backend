@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/abelkristv/slc_website/middleware"
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/services"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
 
@@ -144,46 +144,21 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("token")
-	if err != nil {
-		http.Error(w, "Authorization cookie missing", http.StatusUnauthorized)
-		return
-	}
-
-	tokenStr := cookie.Value
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, http.ErrNotSupported
-		}
-		return []byte("hehe"), nil
-	})
-
-	if err != nil || !token.Valid {
-		http.Error(w, "Invalid token", http.StatusUnauthorized)
-		return
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		http.Error(w, "Invalid token claims", http.StatusUnauthorized)
-		return
-	}
-
-	userIDInterface, ok := claims["id"].(float64) // JWT claims are typically of type float64
+	userID, ok := r.Context().Value(middleware.ContextUserIDKey).(uint)
 	if !ok {
-		http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	userID := uint(userIDInterface)
+	log.Print("User ID:", userID)
 
-	log.Print(userID)
-
+	// Fetch the user information from the service layer
 	user, err := h.userService.GetCurrentUser(userID)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
+	// Return the user data as JSON
 	json.NewEncoder(w).Encode(user)
 }
