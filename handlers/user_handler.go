@@ -162,3 +162,20 @@ func (h *UserHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	// Return the user data as JSON
 	json.NewEncoder(w).Encode(user)
 }
+
+func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	// Set the cookie's expiration date to the past to invalidate it
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",         // Name of the cookie
+		Value:    "",              // Clear the token
+		Path:     "/",             // Cookie path
+		Expires:  time.Unix(0, 0), // Set expiration date to the past
+		HttpOnly: true,            // Make it HTTP-only
+		Secure:   true,            // Use secure flag if you're using HTTPS
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	// Respond with a message indicating successful logout
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Successfully logged out"))
+}
