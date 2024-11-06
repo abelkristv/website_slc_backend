@@ -18,7 +18,7 @@ func RegisterUserRoutes(router *mux.Router, userHandler *handlers.UserHandler) {
 	secured.HandleFunc("/users/{id:[0-9]+}", userHandler.DeleteUser).Methods("DELETE")
 	secured.HandleFunc("/currentuser", userHandler.GetCurrentUser).Methods("GET")
 	secured.HandleFunc("/logout", userHandler.Logout).Methods("POST")
-	secured.HandleFunc("/change-password", userHandler.ChangePassword).Methods("POST")
+	secured.HandleFunc("/change-password", userHandler.ChangePassword).Methods("PUT")
 }
 
 func RegisterAssistantRoutes(router *mux.Router, assistantHandler *handlers.AssistantHandler) {
