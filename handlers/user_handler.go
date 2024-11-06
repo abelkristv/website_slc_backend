@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/services"
@@ -113,12 +114,29 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	username := strings.ToUpper(credentials.Username)
-	user, err := h.userService.Login(username, credentials.Password)
+	token, userToReturn, err := h.userService.Login(username, credentials.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
+	})
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Login successful", "token": string(user)})
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Login successful",
+		"data": map[string]interface{}{
+			"token": token,
+			"user":  userToReturn,
+		},
+	})
+
 }

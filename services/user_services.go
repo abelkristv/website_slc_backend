@@ -100,26 +100,49 @@ func (s *UserService) DeleteUser(id uint) error {
 var jwtKey = []byte("hehe")
 
 type Claims struct {
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	Id int `json:"id"`
+	// Role     string `json:"role"`
 	jwt.StandardClaims
 }
+type UserResponse struct {
+	ID             uint   `json:"id"`
+	Username       string `json:"username"`
+	Email          string `json:"email"`
+	Bio            string `json:"bio"`
+	ProfilePicture string `json:"profile_picture"`
+	Initial        string `json:"initial"`
+	Generation     string `json:"generation"`
+}
 
-func (s *UserService) Login(username, password string) (string, error) {
+func (s *UserService) Login(username, password string) (string, *UserResponse, error) {
 	user, err := s.userRepo.LoginByUserInitial(username)
 	if err != nil {
-		return "", err
+		return "", &UserResponse{}, err
+	}
+
+	userToReturn, err := s.userRepo.GetUserByUsername(username)
+	if err != nil {
+		return "", &UserResponse{}, err
+	}
+
+	userResponse := &UserResponse{
+		ID:             userToReturn.ID,
+		Username:       userToReturn.Username,
+		Email:          userToReturn.Assistant.Email,
+		Bio:            userToReturn.Assistant.Bio,
+		ProfilePicture: userToReturn.Assistant.ProfilePicture,
+		Initial:        userToReturn.Assistant.Initial,
+		Generation:     userToReturn.Assistant.Generation,
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", errors.New("invalid credentials")
+		return "", &UserResponse{}, errors.New("invalid credentials")
 	}
 
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
-		Username: user.Username,
-		Role:     user.Role,
+		Id: int(user.ID),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -128,8 +151,8 @@ func (s *UserService) Login(username, password string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
-		return "", err
+		return "", &UserResponse{}, err
 	}
 
-	return tokenString, nil
+	return tokenString, userResponse, nil
 }
