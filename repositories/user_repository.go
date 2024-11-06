@@ -61,7 +61,7 @@ func (r *userRepository) GetUserByEmail(email string) (*models.User, error) {
 
 func (r *userRepository) GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
-	err := r.db.Preload("Assistant").Where("username = ?", username).First(&user).Error
+	err := r.db.Preload("Assistant").Preload("Assistant.TeachingHistory").Preload("Assistant.TeachingHistory.Course").Preload("Assistant.TeachingHistory.Period").Preload("Assistant.AssistantPosition").Preload("Assistant.AssistantPosition.Position").Where("username = ?", username).First(&user).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

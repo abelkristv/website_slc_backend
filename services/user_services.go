@@ -109,13 +109,9 @@ type Claims struct {
 	jwt.StandardClaims
 }
 type UserResponse struct {
-	ID             uint   `json:"id"`
-	Username       string `json:"username"`
-	Email          string `json:"email"`
-	Bio            string `json:"bio"`
-	ProfilePicture string `json:"profile_picture"`
-	Initial        string `json:"initial"`
-	Generation     string `json:"generation"`
+	ID        uint             `json:"id"`
+	Username  string           `json:"username"`
+	Assistant models.Assistant `json:"assistant"`
 }
 
 func (s *UserService) Login(username, password string) (string, *UserResponse, error) {
@@ -130,13 +126,9 @@ func (s *UserService) Login(username, password string) (string, *UserResponse, e
 	}
 
 	userResponse := &UserResponse{
-		ID:             userToReturn.ID,
-		Username:       userToReturn.Username,
-		Email:          userToReturn.Assistant.Email,
-		Bio:            userToReturn.Assistant.Bio,
-		ProfilePicture: userToReturn.Assistant.ProfilePicture,
-		Initial:        userToReturn.Assistant.Initial,
-		Generation:     userToReturn.Assistant.Generation,
+		ID:        userToReturn.ID,
+		Username:  userToReturn.Username,
+		Assistant: userToReturn.Assistant,
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
