@@ -33,6 +33,10 @@ func (s *UserService) GetUserByID(id uint) (*models.User, error) {
 	return s.userRepo.GetUserByID(id)
 }
 
+func (s *UserService) GetCurrentUser(userID uint) (*models.User, error) {
+	return s.userRepo.GetUserByID(userID)
+}
+
 func (s *UserService) CreateUser(username, password, role string, assistantId int) (*models.User, error) {
 	if username == "" || password == "" || role == "" || assistantId < 0 {
 		return nil, errors.New("all fields are required")

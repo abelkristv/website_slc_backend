@@ -127,7 +127,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Secure:   true,
 		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	w.WriteHeader(http.StatusOK)

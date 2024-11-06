@@ -37,7 +37,7 @@ func (r *userRepository) GetAllUsers() ([]models.User, error) {
 
 func (r *userRepository) GetUserByID(id uint) (*models.User, error) {
 	var user models.User
-	err := r.db.First(&user, id).Error
+	err := r.db.Preload("Assistant").First(&user, id).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
