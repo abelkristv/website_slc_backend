@@ -42,7 +42,15 @@ func (r *assistantRepository) GetAssistantById(id uint) (*models.Assistant, erro
 	var assistant models.Assistant
 	err := r.db.Preload("TeachingHistory", func(db *gorm.DB) *gorm.DB {
 		return db.Order("period_id")
-	}).Preload("AssistantPosition").Preload("AssistantAward").Preload("AssistantAward.Award").Preload("AssistantPosition.Position").Preload("TeachingHistory.Period").Preload("TeachingHistory.Course").Preload("AssistantSocialMedia").Preload("AssistantSocialMedia").First(&assistant, id).Error
+	}).
+		Preload("AssistantPosition").
+		Preload("AssistantAward").
+		Preload("AssistantAward.Award").
+		Preload("AssistantPosition.Position").
+		Preload("TeachingHistory.Period").
+		Preload("TeachingHistory.Course").
+		Preload("AssistantSocialMedia").
+		Preload("AssistantSocialMedia").First(&assistant, id).Error
 	log.Print(assistant.AssistantPosition)
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil

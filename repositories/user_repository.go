@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"log"
+
 	"github.com/abelkristv/slc_website/models"
 	"gorm.io/gorm"
 )
@@ -37,7 +39,29 @@ func (r *userRepository) GetAllUsers() ([]models.User, error) {
 
 func (r *userRepository) GetUserByID(id uint) (*models.User, error) {
 	var user models.User
-	err := r.db.Preload("Assistant").Preload("AssistantAward").Preload("AssistantSocialMedia").Preload("Assistant.AssistantPosition").Preload("Assistant.AssistantPosition.Position").Preload("Assistant.TeachingHistory").Preload("Assistant.TeachingHistory.Course").Preload("Assistant.TeachingHistory.Period").First(&user, id).Error
+	err := r.db.First(&user, id).Error
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	log.Print(id)
+
+	var assistant models.Assistant
+	err = r.db.Preload("TeachingHistory", func(db *gorm.DB) *gorm.DB {
+		return db.Order("period_id")
+	}).
+		Preload("AssistantPosition").
+		Preload("AssistantAward").
+		Preload("AssistantAward.Award").
+		Preload("AssistantPosition.Position").
+		Preload("TeachingHistory.Period").
+		Preload("TeachingHistory.Course").
+		Preload("AssistantSocialMedia").
+		Preload("AssistantSocialMedia").First(&assistant, id).Error
+	// err := r.db.First(&socialMedia, id).Error
+	// log.Print(s)
+
+	user.Assistant = assistant
+
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
@@ -61,7 +85,7 @@ func (r *userRepository) GetUserByEmail(email string) (*models.User, error) {
 
 func (r *userRepository) GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
-	err := r.db.Preload("Assistant").Preload("Assistant.TeachingHistory").Preload("Assistant.TeachingHistory.Course").Preload("Assistant.TeachingHistory.Period").Preload("Assistant.AssistantPosition").Preload("Assistant.AssistantPosition.Position").Where("username = ?", username).First(&user).Error
+	err := r.db.Preload("Assistant").Preload("Assistant.AssistantAward").Preload("Assistant.AssistantSocialMedia").Preload("Assistant.TeachingHistory").Preload("Assistant.TeachingHistory.Course").Preload("Assistant.TeachingHistory.Period").Preload("Assistant.AssistantPosition").Preload("Assistant.AssistantPosition.Position").Where("username = ?", username).First(&user).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

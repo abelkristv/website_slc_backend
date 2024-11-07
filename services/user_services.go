@@ -56,7 +56,6 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 	groupedHistory["Status"] = user.Assistant.Status
 
 	type SocialMediaResponse struct {
-		AssistantId         int
 		GithubLink          string
 		InstagramLink       string
 		LinkedInLink        string

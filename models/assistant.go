@@ -12,8 +12,7 @@ type Assistant struct {
 	Generation           string               `gorm:"size:60"`
 	Status               string               `gorm:"size:10"`
 	TeachingHistory      []TeachingHistory    `gorm:"foreignKey:AssistantId"`
-	AssistantSocialMedia AssistantSocialMedia `gorm:"foreignKey:AssistantId"`
+	AssistantSocialMedia AssistantSocialMedia `gorm:"foreignKey:AssistantId"` // Ensure the foreign key is set correctly
 	AssistantPosition    []AssistantPosition  `gorm:"foreignKey:AssistantId"`
 	AssistantAward       []AssistantAward     `gorm:"foreignKey:AssistantId"`
-	// Award           []Award           `gorm:"foreignKey:AssistantId"`
 }
