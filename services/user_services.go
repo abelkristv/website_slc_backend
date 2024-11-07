@@ -55,7 +55,41 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 	groupedHistory["Generation"] = user.Assistant.Generation
 	groupedHistory["Status"] = user.Assistant.Status
 
+	type SocialMediaResponse struct {
+		AssistantId         int
+		GithubLink          string
+		InstagramLink       string
+		LinkedInLink        string
+		WhatsappLink        string
+		PersonalWebsiteLink string
+	}
+
+	socialMediaResponse := &SocialMediaResponse{
+		GithubLink:          user.Assistant.AssistantSocialMedia.GithubLink,
+		InstagramLink:       user.Assistant.AssistantSocialMedia.InstagramLink,
+		LinkedInLink:        user.Assistant.AssistantSocialMedia.LinkedInLink,
+		WhatsappLink:        user.Assistant.AssistantSocialMedia.WhatsappLink,
+		PersonalWebsiteLink: user.Assistant.AssistantSocialMedia.PersonalWebsiteLink,
+	}
+
+	groupedHistory["SocialMedia"] = socialMediaResponse
+
 	var teachingHistoryEntries []TeachingHistoryEntry
+	var assistantAwardEntries []AssistantAwardEntry
+
+	for _, award := range user.Assistant.AssistantAward {
+		awardTitle := award.Award.AwardTitle
+		AwardDescription := award.Award.AwardDescription
+
+		found := false
+
+		if !found {
+			assistantAwardEntries = append(assistantAwardEntries, AssistantAwardEntry{
+				AwardTitle:       awardTitle,
+				AwardDescription: AwardDescription,
+			})
+		}
+	}
 
 	for _, history := range user.Assistant.TeachingHistory {
 		periodTitle := history.Period.PeriodTitle
@@ -90,6 +124,7 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 	}
 
 	groupedHistory["TeachingHistories"] = sortedTeachingHistory
+	groupedHistory["Awards"] = assistantAwardEntries
 
 	var positionEntries []map[string]interface{}
 	for _, position := range user.Assistant.AssistantPosition {
