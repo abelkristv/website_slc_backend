@@ -92,9 +92,9 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 		}
 		var endDate string
 		if position.EndDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
-			startDate = position.EndDate.Format("2006-01-02 15:04:05-07")
+			endDate = position.EndDate.Format("2006-01-02 15:04:05-07")
 		} else {
-			startDate = ""
+			endDate = ""
 		}
 
 		positionData := map[string]interface{}{
