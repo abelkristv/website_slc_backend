@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/abelkristv/slc_website/models"
@@ -33,8 +34,89 @@ func (s *UserService) GetUserByID(id uint) (*models.User, error) {
 	return s.userRepo.GetUserByID(id)
 }
 
-func (s *UserService) GetCurrentUser(userID uint) (*models.User, error) {
-	return s.userRepo.GetUserByID(userID)
+func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error) {
+	user, err := s.userRepo.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, nil
+	}
+
+	groupedHistory := make(map[string]interface{})
+	groupedHistory["ID"] = user.Assistant.ID
+	groupedHistory["Email"] = user.Assistant.Email
+	groupedHistory["Bio"] = user.Assistant.Bio
+	groupedHistory["FullName"] = user.Assistant.FullName
+	groupedHistory["ProfilePicture"] = user.Assistant.ProfilePicture
+	groupedHistory["Initial"] = user.Assistant.Initial
+	groupedHistory["Generation"] = user.Assistant.Generation
+	groupedHistory["Status"] = user.Assistant.Status
+
+	var teachingHistoryEntries []TeachingHistoryEntry
+
+	for _, history := range user.Assistant.TeachingHistory {
+		periodTitle := history.Period.PeriodTitle
+		courseData := map[string]interface{}{
+			"CourseTitle":       history.Course.CourseTitle,
+			"CourseCode":        history.Course.CourseCode,
+			"CourseDescription": history.Course.CourseDescription,
+		}
+
+		found := false
+		for i := range teachingHistoryEntries {
+			if teachingHistoryEntries[i].PeriodTitle == periodTitle {
+				teachingHistoryEntries[i].Courses = append(teachingHistoryEntries[i].Courses, courseData)
+				found = true
+				break
+			}
+		}
+		if !found {
+			teachingHistoryEntries = append(teachingHistoryEntries, TeachingHistoryEntry{
+				PeriodTitle: periodTitle,
+				Courses:     []map[string]interface{}{courseData},
+			})
+		}
+	}
+
+	sortedTeachingHistory := make([]map[string]interface{}, len(teachingHistoryEntries))
+	for i, entry := range teachingHistoryEntries {
+		sortedTeachingHistory[i] = map[string]interface{}{
+			"PeriodTitle": entry.PeriodTitle,
+			"Courses":     entry.Courses,
+		}
+	}
+
+	groupedHistory["TeachingHistories"] = sortedTeachingHistory
+
+	var positionEntries []map[string]interface{}
+	for _, position := range user.Assistant.AssistantPosition {
+		var startDate string
+		if position.StartDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
+			startDate = position.StartDate.Format("2006-01-02 15:04:05-07")
+		} else {
+			startDate = ""
+		}
+		var endDate string
+		if position.EndDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
+			startDate = position.EndDate.Format("2006-01-02 15:04:05-07")
+		} else {
+			startDate = ""
+		}
+
+		positionData := map[string]interface{}{
+			"PositionName":        position.Position.Name,
+			"PositionDescription": position.Description,
+			"StartDate":           startDate,
+			"EndDate":             endDate,
+		}
+		positionEntries = append(positionEntries, positionData)
+	}
+	groupedHistory["Positions"] = positionEntries
+
+	log.Print(positionEntries)
+
+	return groupedHistory, nil
 }
 
 func (s *UserService) CreateUser(username, password, role string, assistantId int) (*models.User, error) {
