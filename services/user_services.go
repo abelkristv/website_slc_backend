@@ -99,9 +99,9 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 		}
 		var endDate string
 		if position.EndDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
-			startDate = position.EndDate.Format("2006-01-02 15:04:05-07")
+			endDate = position.EndDate.Format("2006-01-02 15:04:05-07")
 		} else {
-			startDate = ""
+			endDate = ""
 		}
 
 		positionData := map[string]interface{}{
