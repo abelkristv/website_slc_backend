@@ -46,6 +46,25 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	groupedHistory["Generation"] = assistant.Generation
 	groupedHistory["Status"] = assistant.Status
 
+	type SocialMediaResponse struct {
+		AssistantId         int
+		GithubLink          string
+		InstagramLink       string
+		LinkedInLink        string
+		WhatsappLink        string
+		PersonalWebsiteLink string
+	}
+
+	socialMediaResponse := &SocialMediaResponse{
+		GithubLink:          assistant.AssistantSocialMedia.GithubLink,
+		InstagramLink:       assistant.AssistantSocialMedia.InstagramLink,
+		LinkedInLink:        assistant.AssistantSocialMedia.LinkedInLink,
+		WhatsappLink:        assistant.AssistantSocialMedia.WhatsappLink,
+		PersonalWebsiteLink: assistant.AssistantSocialMedia.PersonalWebsiteLink,
+	}
+
+	groupedHistory["SocialMedia"] = socialMediaResponse
+
 	var teachingHistoryEntries []TeachingHistoryEntry
 
 	for _, history := range assistant.TeachingHistory {
