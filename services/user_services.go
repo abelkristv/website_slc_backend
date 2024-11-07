@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"log"
 	"time"
 
 	"github.com/abelkristv/slc_website/models"
@@ -42,6 +41,9 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 	if user == nil {
 		return nil, nil
 	}
+
+	userResponse := make(map[string]interface{})
+	userResponse["Username"] = user.Username
 
 	groupedHistory := make(map[string]interface{})
 	groupedHistory["ID"] = user.Assistant.ID
@@ -114,9 +116,9 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 	}
 	groupedHistory["Positions"] = positionEntries
 
-	log.Print(positionEntries)
+	userResponse["Assistant"] = groupedHistory
 
-	return groupedHistory, nil
+	return userResponse, nil
 }
 
 func (s *UserService) CreateUser(username, password, role string, assistantId int) (*models.User, error) {
