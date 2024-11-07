@@ -86,3 +86,13 @@ func RegisterContactUsRoutes(router *mux.Router, contactUsHandler *handlers.Cont
 	router.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.UpdateContact).Methods("PUT")
 	router.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.DeleteContact).Methods("DELETE")
 }
+
+func RegisterAssistantSocialMediaRoutes(router *mux.Router, handler *handlers.AssistantSocialMediaHandler) {
+	router.HandleFunc("/assistant_social_media/{id:[0-9]+}", handler.GetAssistantSocialMediaByID).Methods("GET")
+
+	secured := router.PathPrefix("/").Subrouter()
+	secured.Use(middleware.TokenValid)
+	secured.HandleFunc("/assistant_social_media", handler.CreateOrUpdateAssistantSocialMedia).Methods("POST")
+	// secured.HandleFunc("/assistant_social_media/{id:[0-9]+}", handler.UpdateAssistantSocialMedia).Methods("PUT")
+	secured.HandleFunc("/assistant_social_media/{id:[0-9]+}", handler.DeleteAssistantSocialMedia).Methods("DELETE")
+}

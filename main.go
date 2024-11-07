@@ -66,6 +66,10 @@ func main() {
 	contactUsService := services.NewContactUsService(contactUsRepo)
 	contactUsHandler := handlers.NewContactUsHandler(contactUsService)
 
+	assistantSocialMediaRepo := repositories.NewAssistantSocialMediaRepository(db)
+	assistantSocialMediaService := services.NewAssistantSocialMediaService(assistantSocialMediaRepo)
+	assistantSocialMediaHandler := handlers.NewAssistantSocialMediaHandler(assistantSocialMediaService)
+
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
@@ -83,6 +87,7 @@ func main() {
 	routes.RegisterPositionRoutes(router, positionHandler)
 	routes.RegisterAssistantPositionRoutes(router, assistantPositionHandler)
 	routes.RegisterContactUsRoutes(router, contactUsHandler)
+	routes.RegisterAssistantSocialMediaRoutes(router, assistantSocialMediaHandler)
 
 	log.Println("Starting server on :8888")
 	log.Fatal(http.ListenAndServe(":8888", handler))
