@@ -88,11 +88,11 @@ func RegisterContactUsRoutes(router *mux.Router, contactUsHandler *handlers.Cont
 }
 
 func RegisterAssistantSocialMediaRoutes(router *mux.Router, handler *handlers.AssistantSocialMediaHandler) {
-	router.HandleFunc("/assistant_social_media/{id:[0-9]+}", handler.GetAssistantSocialMediaByID).Methods("GET")
+	// router.HandleFunc("/assistant_social_media/{id:[0-9]+}", handler.GetAssistantSocialMediaByID).Methods("GET")
 	router.HandleFunc("/assistant_social_media/assistant/{assistantId:[0-9]+}", handler.GetAssistantSocialMediaByAssistantID).Methods("GET")
 	secured := router.PathPrefix("/").Subrouter()
 	secured.Use(middleware.TokenValid)
 	secured.HandleFunc("/assistant_social_media", handler.CreateOrUpdateAssistantSocialMedia).Methods("POST")
 	// secured.HandleFunc("/assistant_social_media/{id:[0-9]+}", handler.UpdateAssistantSocialMedia).Methods("PUT")
-	secured.HandleFunc("/assistant_social_media/{id:[0-9]+}", handler.DeleteAssistantSocialMedia).Methods("DELETE")
+	// secured.HandleFunc("/assistant_social_media/{id:[0-9]+}", handler.DeleteAssistantSocialMedia).Methods("DELETE")
 }
