@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -150,16 +149,14 @@ func (h *UserHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Print("User ID:", userID)
+	// log.Print("User ID:", userID)
 
-	// Fetch the user information from the service layer
 	user, err := h.userService.GetCurrentUser(userID)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	// Return the user data as JSON
 	json.NewEncoder(w).Encode(user)
 }
 
@@ -181,9 +178,9 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	type ChangePasswordRequest struct {
-		OldPassword        string `json:"old_password"`
-		NewPassword        string `json:"new_password"`
-		ConfirmNewPassword string `json:"confirm_new_password"`
+		OldPassword        string `json:"OldPassword"`
+		NewPassword        string `json:"NewPassword"`
+		ConfirmNewPassword string `json:"ConfirmNewPassword"`
 	}
 
 	userID, ok := r.Context().Value(middleware.ContextUserIDKey).(uint)
