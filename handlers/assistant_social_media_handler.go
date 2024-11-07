@@ -110,3 +110,39 @@ func (h *AssistantSocialMediaHandler) DeleteAssistantSocialMedia(w http.Response
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *AssistantSocialMediaHandler) GetAssistantSocialMediaByAssistantID(w http.ResponseWriter, r *http.Request) {
+	assistantIDParam := mux.Vars(r)["assistantId"]
+	assistantID, err := strconv.Atoi(assistantIDParam)
+	if err != nil {
+		http.Error(w, "Invalid Assistant ID", http.StatusBadRequest)
+		return
+	}
+
+	type SocialMediaResponse struct {
+		AssistantId         int
+		GithubLink          string
+		InstagramLink       string
+		LinkedInLink        string
+		WhatsappLink        string
+		PersonalWebsiteLink string
+	}
+
+	socialMedia, err := h.service.FindByAssistantId(assistantID)
+	if err != nil {
+		http.Error(w, "Social media not found", http.StatusNotFound)
+		return
+	}
+
+	socialMediaResponse := SocialMediaResponse{
+		AssistantId:         socialMedia.AssistantId,
+		InstagramLink:       socialMedia.InstagramLink,
+		LinkedInLink:        socialMedia.LinkedInLink,
+		GithubLink:          socialMedia.GithubLink,
+		WhatsappLink:        socialMedia.WhatsappLink,
+		PersonalWebsiteLink: socialMedia.PersonalWebsiteLink,
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(socialMediaResponse)
+}
