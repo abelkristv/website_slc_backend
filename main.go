@@ -70,6 +70,10 @@ func main() {
 	assistantSocialMediaService := services.NewAssistantSocialMediaService(assistantSocialMediaRepo)
 	assistantSocialMediaHandler := handlers.NewAssistantSocialMediaHandler(assistantSocialMediaService)
 
+	awardRepo := repositories.NewAwardRepository(db)
+	awardService := services.NewAwardService(awardRepo)
+	awardHandler := handlers.NewAwardHandler(awardService)
+
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
@@ -88,6 +92,7 @@ func main() {
 	routes.RegisterAssistantPositionRoutes(router, assistantPositionHandler)
 	routes.RegisterContactUsRoutes(router, contactUsHandler)
 	routes.RegisterAssistantSocialMediaRoutes(router, assistantSocialMediaHandler)
+	routes.RegisterAwardRoutes(router, awardHandler)
 
 	log.Println("Starting server on :8888")
 	log.Fatal(http.ListenAndServe(":8888", handler))

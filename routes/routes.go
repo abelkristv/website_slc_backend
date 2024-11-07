@@ -96,3 +96,22 @@ func RegisterAssistantSocialMediaRoutes(router *mux.Router, handler *handlers.As
 	// secured.HandleFunc("/assistant_social_media/{id:[0-9]+}", handler.UpdateAssistantSocialMedia).Methods("PUT")
 	// secured.HandleFunc("/assistant_social_media/{id:[0-9]+}", handler.DeleteAssistantSocialMedia).Methods("DELETE")
 }
+
+func RegisterAwardRoutes(router *mux.Router, handler *handlers.AwardHandler) {
+	router.HandleFunc("/awards", handler.CreateAward).Methods("POST")
+	router.HandleFunc("/awards/{id:[0-9]+}", handler.GetAwardByID).Methods("GET")
+	router.HandleFunc("/awards/{id:[0-9]+}", handler.UpdateAward).Methods("PUT")
+	router.HandleFunc("/awards/{id:[0-9]+}", handler.DeleteAward).Methods("DELETE")
+	router.HandleFunc("/awards", handler.GetAllAwards).Methods("GET")
+}
+
+func RegisterAssistantAwardRoutes(router *mux.Router, handler *handlers.AssistantAwardHandler) {
+
+	router.HandleFunc("/assistant_awards/{id:[0-9]+}", handler.GetAssistantAwardByID).Methods("GET")
+	router.HandleFunc("/assistant_awards/assistant/{assistantId:[0-9]+}", handler.GetAssistantAwardsByAssistantID).Methods("GET")
+	secured := router.PathPrefix("/").Subrouter()
+	secured.Use(middleware.TokenValid)
+	secured.HandleFunc("/assistant_awards", handler.CreateAssistantAward).Methods("POST")
+	secured.HandleFunc("/assistant_awards/{id:[0-9]+}", handler.UpdateAssistantAward).Methods("PUT")
+	secured.HandleFunc("/assistant_awards/{id:[0-9]+}", handler.DeleteAssistantAward).Methods("DELETE")
+}
