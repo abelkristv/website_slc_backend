@@ -97,11 +97,53 @@ func seedAssistant(db *gorm.DB) {
 // 		}
 // 	}
 
-// 	log.Println("Social media table seeded successfully")
-// }
+//		log.Println("Social media table seeded successfully")
+//	}
+func seedAwards(db *gorm.DB) {
+	awards := []models.Award{
+		{
+			AwardTitle:       "Best TPA",
+			AwardDescription: "Awarded to the best TPA for their outstanding contribution to teaching.",
+		},
+		{
+			AwardTitle:       "Best Rig",
+			AwardDescription: "Recognizing the best teaching assistant for their excellent skills in managing teaching rigs.",
+		},
+		{
+			AwardTitle:       "Best Qualif",
+			AwardDescription: "Awarded for exceptional qualification achievements in the academic year.",
+		},
+		{
+			AwardTitle:       "Best Performing Assistant",
+			AwardDescription: "Given to the assistant with the best overall performance in supporting students and faculty.",
+		},
+		{
+			AwardTitle:       "Best Teaching Index",
+			AwardDescription: "Awarded for the highest teaching index based on student feedback and academic support.",
+		},
+		{
+			AwardTitle:       "Best Qualification",
+			AwardDescription: "Given to the assistant with the best academic qualification and contributions to the department.",
+		},
+		{
+			AwardTitle:       "Best Performing Assistant (Diploma)",
+			AwardDescription: "Awarded to the best-performing assistant in the diploma program, based on teaching excellence and commitment.",
+		},
+	}
+
+	// Insert awards into the database
+	for _, award := range awards {
+		err := db.Create(&award).Error
+		if err != nil {
+			log.Fatalf("Failed to seed awards: %v", err)
+		}
+	}
+
+	log.Println("Awards table seeded successfully")
+}
 
 func SeedDatabase(db *gorm.DB) {
-	// seedSocialMedia(db)
+	seedAwards(db)
 }
 
 func ClearDatabase(db *gorm.DB) {
