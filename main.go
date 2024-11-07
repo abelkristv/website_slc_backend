@@ -68,7 +68,7 @@ func main() {
 
 	assistantSocialMediaRepo := repositories.NewAssistantSocialMediaRepository(db)
 	assistantSocialMediaService := services.NewAssistantSocialMediaService(assistantSocialMediaRepo)
-	assistantSocialMediaHandler := handlers.NewAssistantSocialMediaHandler(assistantSocialMediaService)
+	assistantSocialMediaHandler := handlers.NewAssistantSocialMediaHandler(assistantSocialMediaService, *userService)
 
 	awardRepo := repositories.NewAwardRepository(db)
 	awardService := services.NewAwardService(awardRepo)

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/abelkristv/slc_website/models"
@@ -261,6 +262,9 @@ func (s *UserService) Login(username, password string) (string, *UserResponse, e
 			ExpiresAt: expirationTime.Unix(),
 		},
 	}
+
+	log.Print(user.Username)
+	log.Print(user.ID)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtKey)

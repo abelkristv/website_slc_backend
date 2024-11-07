@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -12,11 +13,12 @@ import (
 )
 
 type AssistantSocialMediaHandler struct {
-	service services.AssistantSocialMediaService
+	service     services.AssistantSocialMediaService
+	userService services.UserService
 }
 
-func NewAssistantSocialMediaHandler(service services.AssistantSocialMediaService) *AssistantSocialMediaHandler {
-	return &AssistantSocialMediaHandler{service}
+func NewAssistantSocialMediaHandler(service services.AssistantSocialMediaService, userService services.UserService) *AssistantSocialMediaHandler {
+	return &AssistantSocialMediaHandler{service, userService}
 }
 
 func (h *AssistantSocialMediaHandler) CreateOrUpdateAssistantSocialMedia(w http.ResponseWriter, r *http.Request) {
@@ -26,13 +28,26 @@ func (h *AssistantSocialMediaHandler) CreateOrUpdateAssistantSocialMedia(w http.
 		return
 	}
 
+	user, err := h.userService.GetUserByID(userID)
+	log.Print(user.Username)
+	log.Print(userID)
+	if err != nil {
+		http.Error(w, "Error retrieving user", http.StatusInternalServerError)
+		return
+	}
+
+	if user.AssistantId == 0 {
+		http.Error(w, "No associated Assistant ID for user", http.StatusNotFound)
+		return
+	}
+
 	var socialMedia models.AssistantSocialMedia
 	if err := json.NewDecoder(r.Body).Decode(&socialMedia); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	socialMedia.AssistantId = int(userID)
+	socialMedia.AssistantId = user.AssistantId
 
 	existingSocialMedia, err := h.service.FindByAssistantId(socialMedia.AssistantId)
 	if err != nil {

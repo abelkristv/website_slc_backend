@@ -1,8 +1,6 @@
 package repositories
 
 import (
-	"log"
-
 	"github.com/abelkristv/slc_website/models"
 	"gorm.io/gorm"
 )
@@ -43,7 +41,7 @@ func (r *userRepository) GetUserByID(id uint) (*models.User, error) {
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
-	log.Print(id)
+	// log.Print(id)
 
 	var assistant models.Assistant
 	err = r.db.Preload("TeachingHistory", func(db *gorm.DB) *gorm.DB {

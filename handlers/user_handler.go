@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -149,7 +150,7 @@ func (h *UserHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// log.Print("User ID:", userID)
+	log.Print("User ID:", userID)
 
 	user, err := h.userService.GetCurrentUser(userID)
 	if err != nil {
