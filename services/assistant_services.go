@@ -27,6 +27,11 @@ type TeachingHistoryEntry struct {
 	Courses     []map[string]interface{}
 }
 
+type AssistantAwardEntry struct {
+	AwardTitle       string
+	AwardDescription string
+}
+
 func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, error) {
 	assistant, err := s.assistantRepo.GetAssistantById(id)
 	if err != nil {
@@ -66,6 +71,7 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	groupedHistory["SocialMedia"] = socialMediaResponse
 
 	var teachingHistoryEntries []TeachingHistoryEntry
+	var assistantAwardEntries []AssistantAwardEntry
 
 	for _, history := range assistant.TeachingHistory {
 		periodTitle := history.Period.PeriodTitle
@@ -91,6 +97,20 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 		}
 	}
 
+	for _, award := range assistant.AssistantAward {
+		awardTitle := award.Award.AwardTitle
+		AwardDescription := award.Award.AwardDescription
+
+		found := false
+
+		if !found {
+			assistantAwardEntries = append(assistantAwardEntries, AssistantAwardEntry{
+				AwardTitle:       awardTitle,
+				AwardDescription: AwardDescription,
+			})
+		}
+	}
+
 	sortedTeachingHistory := make([]map[string]interface{}, len(teachingHistoryEntries))
 	for i, entry := range teachingHistoryEntries {
 		sortedTeachingHistory[i] = map[string]interface{}{
@@ -100,6 +120,7 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	}
 
 	groupedHistory["TeachingHistories"] = sortedTeachingHistory
+	groupedHistory["Awards"] = assistantAwardEntries
 
 	var positionEntries []map[string]interface{}
 	for _, position := range assistant.AssistantPosition {

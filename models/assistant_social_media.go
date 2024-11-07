@@ -10,5 +10,5 @@ type AssistantSocialMedia struct {
 	LinkedInLink        string
 	WhatsappLink        string
 	PersonalWebsiteLink string
-	Assistant           Assistant `gorm:"foreignKey:AssistantId"`
+	// Assistant           Assistant `gorm:"foreignKey:AssistantId"`
 }
