@@ -49,10 +49,9 @@ func (r *userRepository) GetUserByID(id uint) (*models.User, error) {
 	err = r.db.Preload("TeachingHistory", func(db *gorm.DB) *gorm.DB {
 		return db.Order("period_id")
 	}).
-		Preload("AssistantPosition").
+		Preload("AssistantExperience").
 		Preload("AssistantAward").
 		Preload("AssistantAward.Award").
-		Preload("AssistantPosition.Position").
 		Preload("TeachingHistory.Period").
 		Preload("TeachingHistory.Course").
 		Preload("AssistantSocialMedia").
@@ -85,7 +84,7 @@ func (r *userRepository) GetUserByEmail(email string) (*models.User, error) {
 
 func (r *userRepository) GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
-	err := r.db.Preload("Assistant").Preload("Assistant.AssistantAward").Preload("Assistant.AssistantSocialMedia").Preload("Assistant.TeachingHistory").Preload("Assistant.TeachingHistory.Course").Preload("Assistant.TeachingHistory.Period").Preload("Assistant.AssistantPosition").Preload("Assistant.AssistantPosition.Position").Where("username = ?", username).First(&user).Error
+	err := r.db.Preload("Assistant").Preload("Assistant.AssistantAward").Preload("Assistant.AssistantExperience").Preload("Assistant.AssistantSocialMedia").Preload("Assistant.TeachingHistory").Preload("Assistant.TeachingHistory.Course").Preload("Assistant.TeachingHistory.Period").Where("username = ?", username).First(&user).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}
