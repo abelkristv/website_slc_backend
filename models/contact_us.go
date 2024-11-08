@@ -8,4 +8,5 @@ type ContactUs struct {
 	Email   string `gorm:"size:100"`
 	Phone   string `gorm:"size:100"`
 	Message string `gorm:"size:text"`
+	IsRead  bool
 }

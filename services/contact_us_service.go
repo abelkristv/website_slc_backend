@@ -32,6 +32,7 @@ func (s *contactUsService) GetContactById(id uint) (*models.ContactUs, error) {
 }
 
 func (s *contactUsService) CreateContact(contact *models.ContactUs) error {
+	contact.IsRead = false
 	return s.repo.CreateContact(contact)
 }
 

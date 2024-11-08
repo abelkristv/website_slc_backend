@@ -61,11 +61,13 @@ func RegisterTeachingHistoryRoutes(router *mux.Router, teachingHistoryHandler *h
 }
 
 func RegisterContactUsRoutes(router *mux.Router, contactUsHandler *handlers.ContactUsHandler) {
-	router.HandleFunc("/contacts", contactUsHandler.GetAllContacts).Methods("GET")
-	router.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.GetContactById).Methods("GET")
+	secured := router.PathPrefix("/").Subrouter()
+	secured.Use(middleware.TokenValid)
+	secured.HandleFunc("/contacts", contactUsHandler.GetAllContacts).Methods("GET")
+	secured.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.GetContactById).Methods("GET")
 	router.HandleFunc("/contacts", contactUsHandler.CreateContact).Methods("POST")
-	router.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.UpdateContact).Methods("PUT")
-	router.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.DeleteContact).Methods("DELETE")
+	secured.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.UpdateContact).Methods("PUT")
+	secured.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.DeleteContact).Methods("DELETE")
 }
 
 func RegisterAssistantSocialMediaRoutes(router *mux.Router, handler *handlers.AssistantSocialMediaHandler) {
