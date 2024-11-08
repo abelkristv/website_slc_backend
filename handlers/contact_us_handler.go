@@ -54,6 +54,7 @@ func (h *ContactUsHandler) GetContactById(w http.ResponseWriter, r *http.Request
 
 func (h *ContactUsHandler) CreateContact(w http.ResponseWriter, r *http.Request) {
 	var contact models.ContactUs
+
 	if err := json.NewDecoder(r.Body).Decode(&contact); err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
@@ -122,4 +123,7 @@ func (h *ContactUsHandler) UpdateIsRead(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "updating isRead attribute successfull",
+	})
 }
