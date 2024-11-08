@@ -11,6 +11,7 @@ type ContactUsService interface {
 	CreateContact(contact *models.ContactUs) error
 	UpdateContact(contact *models.ContactUs) error
 	DeleteContact(id uint) error
+	MarkContactAsRead(id uint, isRead bool) error
 }
 
 type contactUsService struct {
@@ -49,4 +50,8 @@ func (s *contactUsService) DeleteContact(id uint) error {
 		return nil
 	}
 	return s.repo.DeleteContact(contact)
+}
+
+func (s *contactUsService) MarkContactAsRead(id uint, isRead bool) error {
+	return s.repo.UpdateContactIsRead(id, isRead)
 }

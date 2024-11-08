@@ -67,6 +67,7 @@ func RegisterContactUsRoutes(router *mux.Router, contactUsHandler *handlers.Cont
 	secured.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.GetContactById).Methods("GET")
 	router.HandleFunc("/contacts", contactUsHandler.CreateContact).Methods("POST")
 	secured.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.UpdateContact).Methods("PUT")
+	secured.HandleFunc("/contacts/isread/{id}", contactUsHandler.UpdateIsRead).Methods("PATCH")
 	secured.HandleFunc("/contacts/{id:[0-9]+}", contactUsHandler.DeleteContact).Methods("DELETE")
 }
 

@@ -11,6 +11,7 @@ type ContactUsRepository interface {
 	CreateContact(contact *models.ContactUs) error
 	UpdateContact(contact *models.ContactUs) error
 	DeleteContact(contact *models.ContactUs) error
+	UpdateContactIsRead(id uint, isRead bool) error // New function
 }
 
 type contactUsRepository struct {
@@ -54,4 +55,8 @@ func (r *contactUsRepository) UpdateContact(contact *models.ContactUs) error {
 
 func (r *contactUsRepository) DeleteContact(contact *models.ContactUs) error {
 	return r.db.Delete(contact).Error
+}
+
+func (r *contactUsRepository) UpdateContactIsRead(id uint, isRead bool) error {
+	return r.db.Model(&models.ContactUs{}).Where("id = ?", id).Update("is_read", isRead).Error
 }

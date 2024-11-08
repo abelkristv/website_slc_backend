@@ -107,3 +107,19 @@ func (h *ContactUsHandler) DeleteContact(w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *ContactUsHandler) UpdateIsRead(w http.ResponseWriter, r *http.Request) {
+	idParam := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		http.Error(w, "Invalid contact ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.service.MarkContactAsRead(uint(id), true); err != nil {
+		http.Error(w, "Error updating is_read status", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
