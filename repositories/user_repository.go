@@ -14,6 +14,8 @@ type UserRepository interface {
 	CreateUser(user *models.User) error
 	UpdateUser(user *models.User) error
 	DeleteUser(user *models.User) error
+	GetUserCount() (int, error)
+	GetPaginatedUsers(offset, limit int) ([]models.User, error)
 }
 
 type userRepository struct {
@@ -118,4 +120,20 @@ func (r *userRepository) UpdateUser(user *models.User) error {
 
 func (r *userRepository) DeleteUser(user *models.User) error {
 	return r.db.Delete(user).Error
+}
+
+func (r *userRepository) GetPaginatedUsers(offset, limit int) ([]models.User, error) {
+	var users []models.User
+	if err := r.db.Preload("Assistant").Offset(offset).Limit(limit).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (r *userRepository) GetUserCount() (int, error) {
+	var count int64
+	if err := r.db.Model(&models.User{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return int(count), nil
 }

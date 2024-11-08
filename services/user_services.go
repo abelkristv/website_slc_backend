@@ -310,3 +310,19 @@ func (s *UserService) ChangePassword(userID uint, oldPassword, newPassword strin
 
 	return nil
 }
+
+func (s *UserService) GetAllUsersPaginated(page int, limit int) ([]models.User, int, error) {
+	offset := (page - 1) * limit
+
+	users, err := s.userRepo.GetPaginatedUsers(offset, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	totalCount, err := s.userRepo.GetUserCount()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, totalCount, nil
+}

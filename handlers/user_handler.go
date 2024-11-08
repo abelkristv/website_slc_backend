@@ -25,11 +25,35 @@ func NewUserHandler(userService *services.UserService) *UserHandler {
 }
 
 func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.userService.GetAllUsers()
+	pageParam := r.URL.Query().Get("page")
+	limitParam := r.URL.Query().Get("limit")
+
+	// Default to page 1 and limit 25 if parameters are not provided or invalid
+	page, err := strconv.Atoi(pageParam)
+	if err != nil || page < 1 {
+		page = 1
+	}
+	limit, err := strconv.Atoi(limitParam)
+	if err != nil || limit < 1 {
+		limit = 25
+	}
+
+	users, totalCount, err := h.userService.GetAllUsersPaginated(page, limit)
 	if err != nil {
 		http.Error(w, "Unable to retrieve users", http.StatusInternalServerError)
+		return
 	}
-	json.NewEncoder(w).Encode(users)
+
+	totalPages := (totalCount + limit - 1) / limit
+
+	response := map[string]interface{}{
+		"users":       users,
+		"total_count": totalCount,
+		"total_pages": totalPages,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
