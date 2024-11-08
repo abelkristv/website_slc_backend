@@ -126,38 +126,38 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 	groupedHistory["TeachingHistories"] = sortedTeachingHistory
 	groupedHistory["Awards"] = assistantAwardEntries
 
-	var positionEntries []map[string]interface{}
-	for _, position := range user.Assistant.AssistantPosition {
+	var experienceEntries []map[string]interface{}
+	for _, experience := range user.Assistant.AssistantExperience {
 		var startDate string
-		if position.StartDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
-			startDate = position.StartDate.Format("2006-01-02 15:04:05-07")
+		if experience.StartDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
+			startDate = experience.StartDate.Format("2006-01-02 15:04:05-07")
 		} else {
 			startDate = ""
 		}
 		var endDate string
-		if position.EndDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
-			endDate = position.EndDate.Format("2006-01-02 15:04:05-07")
+		if experience.EndDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
+			endDate = experience.EndDate.Format("2006-01-02 15:04:05-07")
 		} else {
 			endDate = ""
 		}
 
-		positionData := map[string]interface{}{
-			"PositionName":        position.Position.Name,
-			"PositionDescription": position.Description,
+		experienceData := map[string]interface{}{
+			"CompanyName":         experience.CompanyName,
+			"PositionName":        experience.PositionName,
+			"PositionDescription": experience.PositionDescription,
 			"StartDate":           startDate,
 			"EndDate":             endDate,
 		}
-		positionEntries = append(positionEntries, positionData)
+		experienceEntries = append(experienceEntries, experienceData)
 	}
-	groupedHistory["Positions"] = positionEntries
-
+	groupedHistory["AssistantExperience"] = experienceEntries
 	userResponse["Assistant"] = groupedHistory
 
 	return userResponse, nil
 }
 
-func (s *UserService) CreateUser(username, password, role string, assistantId int) (*models.User, error) {
-	if username == "" || password == "" || role == "" || assistantId < 0 {
+func (s *UserService) CreateUser(username, password string, assistantId int) (*models.User, error) {
+	if username == "" || password == "" || assistantId < 0 {
 		return nil, errors.New("all fields are required")
 	}
 
@@ -178,7 +178,6 @@ func (s *UserService) CreateUser(username, password, role string, assistantId in
 	newUser := &models.User{
 		Username:    username,
 		Password:    hashedPassword,
-		Role:        role,
 		AssistantId: assistantId,
 	}
 
@@ -204,7 +203,6 @@ func (s *UserService) UpdateUser(user *models.User) error {
 	if err != nil {
 		return err
 	}
-	existingUser.Role = user.Role
 
 	return s.userRepo.UpdateUser(existingUser)
 }

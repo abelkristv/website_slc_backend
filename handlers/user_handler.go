@@ -55,7 +55,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newUser, err := h.userService.CreateUser(user.Username, user.Password, user.Role, user.AssistantId)
+	newUser, err := h.userService.CreateUser(user.Username, user.Password, user.AssistantId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

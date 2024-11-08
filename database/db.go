@@ -23,7 +23,7 @@ func InitializeDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&models.Assistant{}, &models.Award{}, &models.AssistantAward{}, &models.AssistantSocialMedia{}, &models.Event{}, &models.Period{}, &models.User{})
+	err = db.AutoMigrate(&models.Assistant{}, &models.Award{}, &models.AssistantAward{}, &models.AssistantExperience{}, &models.AssistantSocialMedia{}, &models.Event{}, &models.Period{}, &models.User{})
 	if err != nil {
 		log.Fatal("failed to migrate PostgreSQL database:", err)
 		return nil, err

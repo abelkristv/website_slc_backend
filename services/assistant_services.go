@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"log"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/repositories"
@@ -122,32 +121,31 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	groupedHistory["TeachingHistories"] = sortedTeachingHistory
 	groupedHistory["Awards"] = assistantAwardEntries
 
-	var positionEntries []map[string]interface{}
-	for _, position := range assistant.AssistantPosition {
+	var experienceEntries []map[string]interface{}
+	for _, experience := range assistant.AssistantExperience {
 		var startDate string
-		if position.StartDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
-			startDate = position.StartDate.Format("2006-01-02 15:04:05-07")
+		if experience.StartDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
+			startDate = experience.StartDate.Format("2006-01-02 15:04:05-07")
 		} else {
 			startDate = ""
 		}
 		var endDate string
-		if position.EndDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
-			endDate = position.EndDate.Format("2006-01-02 15:04:05-07")
+		if experience.EndDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
+			endDate = experience.EndDate.Format("2006-01-02 15:04:05-07")
 		} else {
 			endDate = ""
 		}
 
-		positionData := map[string]interface{}{
-			"PositionName":        position.Position.Name,
-			"PositionDescription": position.Description,
+		experienceData := map[string]interface{}{
+			"CompanyName":         experience.CompanyName,
+			"PositionName":        experience.PositionName,
+			"PositionDescription": experience.PositionDescription,
 			"StartDate":           startDate,
 			"EndDate":             endDate,
 		}
-		positionEntries = append(positionEntries, positionData)
+		experienceEntries = append(experienceEntries, experienceData)
 	}
-	groupedHistory["Positions"] = positionEntries
-
-	log.Print(positionEntries)
+	groupedHistory["AssistantExperience"] = experienceEntries
 
 	return groupedHistory, nil
 }

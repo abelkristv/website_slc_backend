@@ -54,14 +54,6 @@ func main() {
 	teachingHistoryService := services.NewTeachingHistoryService(teachingHistoryRepo)
 	teachingHistoryHandler := handlers.NewTeachingHistoryHandler(teachingHistoryService)
 
-	positionRepo := repositories.NewPositionRepository(db)
-	positionService := services.NewPositionService(positionRepo)
-	positionHandler := handlers.NewPositionHandler(positionService)
-
-	assistantPositionRepo := repositories.NewAssistantPositionRepository(db)
-	assistantPositionService := services.NewAssistantPositionService(assistantPositionRepo, positionRepo)
-	assistantPositionHandler := handlers.NewAssistantPositionHandler(assistantPositionService)
-
 	contactUsRepo := repositories.NewContactUsRepository(db)
 	contactUsService := services.NewContactUsService(contactUsRepo)
 	contactUsHandler := handlers.NewContactUsHandler(contactUsService)
@@ -88,8 +80,7 @@ func main() {
 	routes.RegisterEventRoutes(router, eventHandler)
 	routes.RegisterPeriodRoutes(router, periodHandler)
 	routes.RegisterTeachingHistoryRoutes(router, teachingHistoryHandler)
-	routes.RegisterPositionRoutes(router, positionHandler)
-	routes.RegisterAssistantPositionRoutes(router, assistantPositionHandler)
+
 	routes.RegisterContactUsRoutes(router, contactUsHandler)
 	routes.RegisterAssistantSocialMediaRoutes(router, assistantSocialMediaHandler)
 	routes.RegisterAwardRoutes(router, awardHandler)

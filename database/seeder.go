@@ -17,13 +17,11 @@ func seedUsers(db *gorm.DB) {
 		{
 			Username:    "BL23-2",
 			Password:    hashedPassword,
-			Role:        models.AssistantRole.String(),
 			AssistantId: 1,
 		},
 		{
 			Username:    "DT23-2",
 			Password:    hashedPassword,
-			Role:        models.Admin.String(),
 			AssistantId: 2,
 		},
 	}
@@ -169,7 +167,7 @@ func SeedDatabase(db *gorm.DB) {
 }
 
 func ClearDatabase(db *gorm.DB) {
-	tables := []string{"teaching_histories", "periods", "courses", "users", "assistants", "social_medias"}
+	tables := []string{"teaching_histories", "periods", "courses", "users", "assistant_positions", "assistant_social_media", "assistants", "social_media", "contact_us"}
 
 	for _, table := range tables {
 		err := db.Exec("DELETE FROM " + table).Error
@@ -177,14 +175,14 @@ func ClearDatabase(db *gorm.DB) {
 			log.Fatalf("Failed to clear table %s: %v", table, err)
 		}
 		log.Printf("Cleared table %s successfully", table)
-
 	}
+
 	err := db.Exec("ALTER SEQUENCE teaching_histories_id_seq RESTART WITH 1").Error
 	if err != nil {
 		log.Fatalf("Failed to reset sequence for users: %v", err)
 	}
 
-	err = db.Exec("ALTER SEQUENCE social_medias_id_seq RESTART WITH 1").Error
+	err = db.Exec("ALTER SEQUENCE social_media_id_seq RESTART WITH 1").Error
 	if err != nil {
 		log.Fatalf("Failed to reset sequence for users: %v", err)
 	}
@@ -202,6 +200,18 @@ func ClearDatabase(db *gorm.DB) {
 		log.Fatalf("Failed to reset sequence for users: %v", err)
 	}
 	err = db.Exec("ALTER SEQUENCE courses_id_seq RESTART WITH 1").Error
+	if err != nil {
+		log.Fatalf("Failed to reset sequence for users: %v", err)
+	}
+	err = db.Exec("ALTER SEQUENCE assistant_positions_id_seq RESTART WITH 1").Error
+	if err != nil {
+		log.Fatalf("Failed to reset sequence for users: %v", err)
+	}
+	err = db.Exec("ALTER SEQUENCE assistant_social_media_id_seq RESTART WITH 1").Error
+	if err != nil {
+		log.Fatalf("Failed to reset sequence for users: %v", err)
+	}
+	err = db.Exec("ALTER SEQUENCE contact_us_id_seq RESTART WITH 1").Error
 	if err != nil {
 		log.Fatalf("Failed to reset sequence for users: %v", err)
 	}

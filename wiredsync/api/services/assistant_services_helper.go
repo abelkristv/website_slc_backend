@@ -17,6 +17,8 @@ func isValidUsername(username string) bool {
 	var usernamePatterns = []string{
 		`^[A-Z]{2}\d{2}-\d{1}$`,
 		`^LC\d{3}$`,
+		`^LS\d{3}$`,
+		`^LB\d{3}$`,
 	}
 
 	for _, pattern := range usernamePatterns {
@@ -26,52 +28,23 @@ func isValidUsername(username string) bool {
 	}
 	return false
 }
-
 func processUser(db *gorm.DB, s *AssistantService, user api_models.Assistant, status string) bool {
-	var foundUser models.User
-	result := db.Where("username = ?", user.Username).First(&foundUser)
 
-	roles := s.FetchAssistantRoles(user.Username)
-
-	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
-		log.Fatalf("Error querying user: %v", result.Error)
-	}
-
-	if result.RowsAffected > 0 {
-		for _, role := range roles {
-			var positionModel models.Position
-			if err := db.Where("name = ?", role).First(&positionModel).Error; err != nil {
-				log.Printf("Position not found for title %s: %v", positionModel.Name, err)
-				log.Printf("Creating position : %s", positionModel.Name)
-				positionModel = models.Position{
-					Name: role,
-				}
-				if err := db.Create(&positionModel).Error; err != nil {
-					log.Fatalf("Failed to create position: %v", err)
-				}
-
-			}
-			assistantPosition := models.AssistantPosition{
-				AssistantId: int(foundUser.ID),
-				PositionId:  int(positionModel.ID),
-			}
-
-			if err := db.Create(&assistantPosition).Error; err != nil {
-				log.Fatalf("Failed to create assistantPosition: %v", err)
-			}
-		}
+	var existingAssistant models.Assistant
+	if err := db.Where("full_name = ?", user.Name).First(&existingAssistant).Error; err == nil {
+		log.Printf("Assistant with FullName %s already exists. Skipping creation.", user.Name)
 		return false
 	}
 
 	email := fetchEmail(user.BinusianID)
 
-	assistant := createAssistant(db, user, email, status, roles)
-	createUser(db, user, roles, int(assistant.ID))
+	assistant := createAssistant(db, user, email, status)
+	createUser(db, user, int(assistant.ID))
 
 	return true
 }
 
-func createAssistant(db *gorm.DB, user api_models.Assistant, email string, status string, roles []string) models.Assistant {
+func createAssistant(db *gorm.DB, user api_models.Assistant, email string, status string) models.Assistant {
 	var initial, generation string
 	profilePictureURL := fmt.Sprintf("https://bluejack.binus.ac.id/lapi/api/Account/GetThumbnail?id=%s", user.PictureID)
 
@@ -89,53 +62,23 @@ func createAssistant(db *gorm.DB, user api_models.Assistant, email string, statu
 		Email:          email,
 		ProfilePicture: profilePictureURL,
 		FullName:       user.Name,
-		Status:         status,
+
+		Status: status,
 	}
 
 	if err := db.Create(&assistant).Error; err != nil {
 		log.Fatalf("Failed to create assistant: %v", err)
 	}
 
-	log.Printf("Assistant have this roles : %s", roles)
-
-	for _, role := range roles {
-		var positionModel models.Position
-		if err := db.Where("name = ?", role).First(&positionModel).Error; err != nil {
-			log.Printf("Position not found for title %s: %v", positionModel.Name, err)
-			log.Printf("Creating position : %s", positionModel.Name)
-			positionModel = models.Position{
-				Name: role,
-			}
-			if err := db.Create(&positionModel).Error; err != nil {
-				log.Fatalf("Failed to create position: %v", err)
-			}
-
-		}
-		assistantPosition := models.AssistantPosition{
-			AssistantId: int(assistant.ID),
-			PositionId:  int(positionModel.ID),
-		}
-
-		if err := db.Create(&assistantPosition).Error; err != nil {
-			log.Fatalf("Failed to create assistantPosition: %v", err)
-		}
-	}
-
 	return assistant
 }
 
-func createUser(db *gorm.DB, user api_models.Assistant, roles []string, assistantID int) {
+func createUser(db *gorm.DB, user api_models.Assistant, assistantID int) {
 	hashedPassword := generatePassword(user.Username)
-
-	role := "Assistant"
-	if len(roles) > 0 {
-		role = roles[0]
-	}
 
 	newUser := models.User{
 		Username:    user.Username,
 		Password:    hashedPassword,
-		Role:        role,
 		AssistantId: assistantID,
 	}
 
@@ -143,7 +86,7 @@ func createUser(db *gorm.DB, user api_models.Assistant, roles []string, assistan
 		log.Fatalf("Failed to create user: %v", err)
 	}
 
-	fmt.Printf("Created new user: %s with email and role: %s\n", newUser.Username, newUser.Role)
+	fmt.Printf("Created new user: %s\n", newUser.Username)
 }
 
 func generatePassword(username string) string {
