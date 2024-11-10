@@ -143,6 +143,7 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 
 		experienceData := map[string]interface{}{
 			"CompanyName":         experience.CompanyName,
+			"CompanyLogo":         experience.CompanyLogo,
 			"PositionName":        experience.PositionName,
 			"PositionDescription": experience.PositionDescription,
 			"StartDate":           startDate,

@@ -138,6 +138,7 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 
 		experienceData := map[string]interface{}{
 			"CompanyName":         experience.CompanyName,
+			"CompanyLogo":         experience.CompanyLogo,
 			"PositionName":        experience.PositionName,
 			"PositionDescription": experience.PositionDescription,
 			"StartDate":           startDate,
