@@ -10,8 +10,9 @@ type AssistantExperience struct {
 	gorm.Model
 	AssistantId         int
 	CompanyName         string `gorm:"size:100"`
+	CompanyLogo 		string `gorm:"type:text"`
 	PositionName        string `gorm:"size:100"`
-	PositionDescription string `gorm:"size:100"`
+	PositionDescription string `gorm:"size:text"`
 	StartDate           time.Time
 	EndDate             time.Time
 
