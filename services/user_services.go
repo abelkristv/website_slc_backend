@@ -78,17 +78,10 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 	var assistantAwardEntries []AssistantAwardEntry
 
 	for _, award := range user.Assistant.AssistantAward {
-		awardTitle := award.Award.AwardTitle
-		AwardDescription := award.Award.AwardDescription
-
-		found := false
-
-		if !found {
-			assistantAwardEntries = append(assistantAwardEntries, AssistantAwardEntry{
-				AwardTitle:       awardTitle,
-				AwardDescription: AwardDescription,
-			})
-		}
+		assistantAwardEntries = append(assistantAwardEntries, AssistantAwardEntry{
+			AwardTitle:       award.Award.AwardTitle,
+			AwardDescription: award.Award.AwardDescription,
+		})
 	}
 
 	for _, history := range user.Assistant.TeachingHistory {
@@ -125,37 +118,12 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 
 	groupedHistory["TeachingHistories"] = sortedTeachingHistory
 	groupedHistory["Awards"] = assistantAwardEntries
-
-	var experienceEntries []map[string]interface{}
-	for _, experience := range user.Assistant.AssistantExperience {
-		var startDate string
-		if experience.StartDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
-			startDate = experience.StartDate.Format("2006-01-02 15:04:05-07")
-		} else {
-			startDate = ""
-		}
-		var endDate string
-		if experience.EndDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
-			endDate = experience.EndDate.Format("2006-01-02 15:04:05-07")
-		} else {
-			endDate = ""
-		}
-
-		experienceData := map[string]interface{}{
-			"CompanyName":         experience.CompanyName,
-			"CompanyLogo":         experience.CompanyLogo,
-			"PositionName":        experience.PositionName,
-			"PositionDescription": experience.PositionDescription,
-			"StartDate":           startDate,
-			"EndDate":             endDate,
-		}
-		experienceEntries = append(experienceEntries, experienceData)
-	}
-	groupedHistory["AssistantExperience"] = experienceEntries
 	userResponse["Assistant"] = groupedHistory
 
 	return userResponse, nil
 }
+
+
 
 func (s *UserService) CreateUser(username, password string, assistantId int) (*models.User, error) {
 	if username == "" || password == "" || assistantId < 0 {

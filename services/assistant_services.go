@@ -121,35 +121,9 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	groupedHistory["TeachingHistories"] = sortedTeachingHistory
 	groupedHistory["Awards"] = assistantAwardEntries
 
-	var experienceEntries []map[string]interface{}
-	for _, experience := range assistant.AssistantExperience {
-		var startDate string
-		if experience.StartDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
-			startDate = experience.StartDate.Format("2006-01-02 15:04:05-07")
-		} else {
-			startDate = ""
-		}
-		var endDate string
-		if experience.EndDate.Format("2006-01-02 15:04:05-07") != "0001-01-01 00:00:00+00" {
-			endDate = experience.EndDate.Format("2006-01-02 15:04:05-07")
-		} else {
-			endDate = ""
-		}
-
-		experienceData := map[string]interface{}{
-			"CompanyName":         experience.CompanyName,
-			"CompanyLogo":         experience.CompanyLogo,
-			"PositionName":        experience.PositionName,
-			"PositionDescription": experience.PositionDescription,
-			"StartDate":           startDate,
-			"EndDate":             endDate,
-		}
-		experienceEntries = append(experienceEntries, experienceData)
-	}
-	groupedHistory["AssistantExperience"] = experienceEntries
-
 	return groupedHistory, nil
 }
+
 
 func (s *AssistantService) CreateAssistant(email, bio, profile_picture, initial, generation string) (*models.Assistant, error) {
 	if email == "" || bio == "" || initial == "" || generation == "" {
