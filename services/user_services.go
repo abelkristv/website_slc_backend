@@ -156,8 +156,12 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 				Experiences: []AssistantExperienceEntry{experienceData},
 			}
 			companyExperienceMap[companyName] = newCompanyExperience
-			assistantExperienceByCompany = append(assistantExperienceByCompany, *newCompanyExperience)
+			// assistantExperienceByCompany = append(assistantExperienceByCompany, *newCompanyExperience)
 		}
+	}
+
+	for _, companyExp := range companyExperienceMap {
+		assistantExperienceByCompany = append(assistantExperienceByCompany, *companyExp)
 	}
 
 	groupedHistory["AssistantExperiences"] = assistantExperienceByCompany
