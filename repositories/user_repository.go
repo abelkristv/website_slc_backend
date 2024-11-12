@@ -55,6 +55,8 @@ func (r *userRepository) GetUserByID(id uint) (*models.User, error) {
 		Preload("TeachingHistory.Period").
 		Preload("TeachingHistory.Course").
 		Preload("AssistantSocialMedia").
+		Preload("AssistantExperience.Position").
+		Preload("AssistantExperience.Position.Company").
 		Preload("AssistantSocialMedia").First(&assistant, user.AssistantId).Error
 	// err := r.db.First(&socialMedia, id).Error
 	// log.Print(s)
