@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"log"
+
 	"github.com/abelkristv/slc_website/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -50,6 +52,8 @@ func (r *assistantRepository) GetAssistantById(id uint) (*models.Assistant, erro
 		Preload("TeachingHistory.Course").
 		Preload("AssistantSocialMedia").
 		Preload("AssistantSocialMedia").First(&assistant, id).Error
+
+	log.Print(assistant.AssistantExperience)
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

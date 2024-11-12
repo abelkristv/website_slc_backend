@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/abelkristv/slc_website/models"
@@ -141,6 +142,8 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	companyExperienceMap := make(map[string]*CompanyExperience)
 
 	for _, exp := range assistant.AssistantExperience {
+		log.Print(exp.Position.Company.CompanyName)
+		log.Print(exp.Position.PositionName)
 		companyName := exp.Position.Company.CompanyName
 		companyLogo := exp.Position.Company.CompanyLogo
 		experienceData := AssistantExperienceEntry{
@@ -151,23 +154,27 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 			Location:            exp.Position.Location,
 		}
 
-		// Check if company already exists in the map
 		if companyExp, exists := companyExperienceMap[companyName]; exists {
-			// Append to existing company experience list
 			companyExp.Experiences = append(companyExp.Experiences, experienceData)
 		} else {
-			// Create a new entry with the company logo and name
 			newCompanyExperience := &CompanyExperience{
 				CompanyName: companyName,
 				CompanyLogo: companyLogo,
 				Experiences: []AssistantExperienceEntry{experienceData},
 			}
 			companyExperienceMap[companyName] = newCompanyExperience
-			assistantExperienceByCompany = append(assistantExperienceByCompany, *newCompanyExperience)
 		}
+		
+		
+		
+	}
+
+	for _, companyExp := range companyExperienceMap {
+		assistantExperienceByCompany = append(assistantExperienceByCompany, *companyExp)
 	}
 
 	groupedHistory["AssistantExperiences"] = assistantExperienceByCompany
+	log.Print(groupedHistory["AssistantExperiences"])
 
 	return groupedHistory, nil
 }
