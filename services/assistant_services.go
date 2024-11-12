@@ -167,7 +167,7 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 		}
 	}
 
-	groupedHistory["AssistantExperienceByCompany"] = assistantExperienceByCompany
+	groupedHistory["AssistantExperiences"] = assistantExperienceByCompany
 
 	return groupedHistory, nil
 }
