@@ -129,10 +129,17 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 		EndDate             time.Time
 		Location            string
 	}
-	assistantExperienceByCompany := make(map[string][]AssistantExperienceEntry)
+
+	type CompanyExperience struct {
+		CompanyLogo string
+		Experiences []AssistantExperienceEntry
+	}
+
+	assistantExperienceByCompany := make(map[string]CompanyExperience)
 
 	for _, exp := range assistant.AssistantExperience {
 		companyName := exp.Position.Company.CompanyName
+		companyLogo := exp.Position.Company.CompanyLogo
 		experienceData := AssistantExperienceEntry{
 			PositionName:        exp.Position.PositionName,
 			PositionDescription: exp.Position.PositionDescription,
@@ -140,10 +147,19 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 			EndDate:             exp.Position.EndDate,
 			Location:            exp.Position.Location,
 		}
-		assistantExperienceByCompany[companyName] = append(assistantExperienceByCompany[companyName], experienceData)
+
+		if companyExp, exists := assistantExperienceByCompany[companyName]; exists {
+			companyExp.Experiences = append(companyExp.Experiences, experienceData)
+			assistantExperienceByCompany[companyName] = companyExp
+		} else {
+			assistantExperienceByCompany[companyName] = CompanyExperience{
+				CompanyLogo: companyLogo,
+				Experiences: []AssistantExperienceEntry{experienceData},
+			}
+		}
 	}
 
-	groupedHistory["AssistantExperience"] = assistantExperienceByCompany
+	groupedHistory["AssistantExperienceByCompany"] = assistantExperienceByCompany
 
 	return groupedHistory, nil
 }
