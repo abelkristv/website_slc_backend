@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"time"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/repositories"
@@ -121,9 +122,31 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	groupedHistory["TeachingHistories"] = sortedTeachingHistory
 	groupedHistory["Awards"] = assistantAwardEntries
 
+	type AssistantExperienceEntry struct {
+		PositionName        string
+		PositionDescription string
+		StartDate           time.Time
+		EndDate             time.Time
+		Location            string
+	}
+	assistantExperienceByCompany := make(map[string][]AssistantExperienceEntry)
+
+	for _, exp := range assistant.AssistantExperience {
+		companyName := exp.Position.Company.CompanyName
+		experienceData := AssistantExperienceEntry{
+			PositionName:        exp.Position.PositionName,
+			PositionDescription: exp.Position.PositionDescription,
+			StartDate:           exp.Position.StartDate,
+			EndDate:             exp.Position.EndDate,
+			Location:            exp.Position.Location,
+		}
+		assistantExperienceByCompany[companyName] = append(assistantExperienceByCompany[companyName], experienceData)
+	}
+
+	groupedHistory["AssistantExperience"] = assistantExperienceByCompany
+
 	return groupedHistory, nil
 }
-
 
 func (s *AssistantService) CreateAssistant(email, bio, profile_picture, initial, generation string) (*models.Assistant, error) {
 	if email == "" || bio == "" || initial == "" || generation == "" {

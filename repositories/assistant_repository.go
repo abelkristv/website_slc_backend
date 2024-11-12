@@ -44,6 +44,8 @@ func (r *assistantRepository) GetAssistantById(id uint) (*models.Assistant, erro
 		Preload("AssistantAward").
 		Preload("AssistantAward.Award").
 		Preload("AssistantExperience").
+		Preload("AssistantExperience.Position").
+		Preload("AssistantExperience.Position.Company").
 		Preload("TeachingHistory.Period").
 		Preload("TeachingHistory.Course").
 		Preload("AssistantSocialMedia").

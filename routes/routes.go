@@ -99,3 +99,14 @@ func RegisterAssistantAwardRoutes(router *mux.Router, handler *handlers.Assistan
 	secured.HandleFunc("/assistant_awards/{id:[0-9]+}", handler.UpdateAssistantAward).Methods("PUT")
 	secured.HandleFunc("/assistant_awards/{id:[0-9]+}", handler.DeleteAssistantAward).Methods("DELETE")
 }
+
+func RegisterNewsRoutes(router *mux.Router, newsHandler *handlers.NewsHandler) {
+	router.HandleFunc("/news", newsHandler.GetAllNews).Methods("GET")
+	router.HandleFunc("/news/{id:[0-9]+}", newsHandler.GetNewsByID).Methods("GET")
+
+	secured := router.PathPrefix("/").Subrouter()
+	secured.Use(middleware.TokenValid)
+	secured.HandleFunc("/news", newsHandler.CreateNews).Methods("POST")
+	secured.HandleFunc("/news/{id:[0-9]+}", newsHandler.UpdateNews).Methods("PUT")
+	secured.HandleFunc("/news/{id:[0-9]+}", newsHandler.DeleteNews).Methods("DELETE")
+}
