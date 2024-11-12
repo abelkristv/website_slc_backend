@@ -118,12 +118,53 @@ func (s *UserService) GetCurrentUser(userID uint) (map[string]interface{}, error
 
 	groupedHistory["TeachingHistories"] = sortedTeachingHistory
 	groupedHistory["Awards"] = assistantAwardEntries
+
+	type AssistantExperienceEntry struct {
+		PositionName        string
+		PositionDescription string
+		StartDate           time.Time
+		EndDate             time.Time
+		Location            string
+	}
+
+	type CompanyExperience struct {
+		CompanyName string
+		CompanyLogo string
+		Experiences []AssistantExperienceEntry
+	}
+
+	var assistantExperienceByCompany []CompanyExperience
+	companyExperienceMap := make(map[string]*CompanyExperience)
+
+	for _, exp := range user.Assistant.AssistantExperience {
+		companyName := exp.Position.Company.CompanyName
+		companyLogo := exp.Position.Company.CompanyLogo
+		experienceData := AssistantExperienceEntry{
+			PositionName:        exp.Position.PositionName,
+			PositionDescription: exp.Position.PositionDescription,
+			StartDate:           exp.Position.StartDate,
+			EndDate:             exp.Position.EndDate,
+			Location:            exp.Position.Location,
+		}
+
+		if companyExp, exists := companyExperienceMap[companyName]; exists {
+			companyExp.Experiences = append(companyExp.Experiences, experienceData)
+		} else {
+			newCompanyExperience := &CompanyExperience{
+				CompanyName: companyName,
+				CompanyLogo: companyLogo,
+				Experiences: []AssistantExperienceEntry{experienceData},
+			}
+			companyExperienceMap[companyName] = newCompanyExperience
+			assistantExperienceByCompany = append(assistantExperienceByCompany, *newCompanyExperience)
+		}
+	}
+
+	groupedHistory["AssistantExperiences"] = assistantExperienceByCompany
 	userResponse["Assistant"] = groupedHistory
 
 	return userResponse, nil
 }
-
-
 
 func (s *UserService) CreateUser(username, password string, assistantId int) (*models.User, error) {
 	if username == "" || password == "" || assistantId < 0 {
