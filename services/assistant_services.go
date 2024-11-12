@@ -131,11 +131,14 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	}
 
 	type CompanyExperience struct {
+		CompanyName string
 		CompanyLogo string
 		Experiences []AssistantExperienceEntry
 	}
 
-	assistantExperienceByCompany := make(map[string]CompanyExperience)
+	var assistantExperienceByCompany []CompanyExperience
+
+	companyExperienceMap := make(map[string]*CompanyExperience)
 
 	for _, exp := range assistant.AssistantExperience {
 		companyName := exp.Position.Company.CompanyName
@@ -148,14 +151,19 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 			Location:            exp.Position.Location,
 		}
 
-		if companyExp, exists := assistantExperienceByCompany[companyName]; exists {
+		// Check if company already exists in the map
+		if companyExp, exists := companyExperienceMap[companyName]; exists {
+			// Append to existing company experience list
 			companyExp.Experiences = append(companyExp.Experiences, experienceData)
-			assistantExperienceByCompany[companyName] = companyExp
 		} else {
-			assistantExperienceByCompany[companyName] = CompanyExperience{
+			// Create a new entry with the company logo and name
+			newCompanyExperience := &CompanyExperience{
+				CompanyName: companyName,
 				CompanyLogo: companyLogo,
 				Experiences: []AssistantExperienceEntry{experienceData},
 			}
+			companyExperienceMap[companyName] = newCompanyExperience
+			assistantExperienceByCompany = append(assistantExperienceByCompany, *newCompanyExperience)
 		}
 	}
 
