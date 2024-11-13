@@ -193,15 +193,21 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 		iLatestEndDate := iExperiences[len(iExperiences)-1].EndDate
 		jLatestEndDate := jExperiences[len(jExperiences)-1].EndDate
 
-		if iEarliestStartDate.Equal(*jEarliestStartDate) {
-			if iLatestEndDate == nil {
-				return false
-			}
-			if jLatestEndDate == nil {
+		if iLatestEndDate == nil && jLatestEndDate != nil {
+			return false
+		}
+		if iLatestEndDate != nil && jLatestEndDate == nil {
+			return true
+		}
+		if iLatestEndDate != nil && jLatestEndDate != nil {
+			if iLatestEndDate.After(*jLatestEndDate) {
 				return true
 			}
-			return iLatestEndDate.After(*jLatestEndDate)
+			if iLatestEndDate.Before(*jLatestEndDate) {
+				return false
+			}
 		}
+
 		return iEarliestStartDate.After(*jEarliestStartDate)
 	})
 
