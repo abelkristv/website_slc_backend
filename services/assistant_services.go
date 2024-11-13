@@ -170,16 +170,29 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 
 	for _, companyExp := range companyExperienceMap {
 		sort.Slice(companyExp.Experiences, func(i, j int) bool {
-			if companyExp.Experiences[i].EndDate == nil && companyExp.Experiences[j].EndDate == nil {
+			// If both EndDates are nil, compare by StartDate (ongoing jobs are more recent)
+			if companyExp.Experiences[i].EndDate.Equal(time.Time{}) && companyExp.Experiences[j].EndDate.Equal(time.Time{}) {
 				return companyExp.Experiences[i].StartDate.After(*companyExp.Experiences[j].StartDate)
 			}
-			if companyExp.Experiences[i].EndDate == nil {
-				return false
+
+			// If one EndDate is nil, the ongoing job (with nil EndDate) should come first
+			if companyExp.Experiences[i].EndDate.Equal(time.Time{}) {
+				return true // i is ongoing, so it comes first
 			}
-			if companyExp.Experiences[j].EndDate == nil {
+			if companyExp.Experiences[j].EndDate.Equal(time.Time{}) {
+				return false // j is ongoing, so it comes first
+			}
+
+			// Both EndDates are non-nil, compare them (most recent first)
+			if companyExp.Experiences[i].EndDate.After(*companyExp.Experiences[j].EndDate) {
 				return true
 			}
-			return companyExp.Experiences[i].EndDate.After(*companyExp.Experiences[j].EndDate)
+			if companyExp.Experiences[i].EndDate.Before(*companyExp.Experiences[j].EndDate) {
+				return false
+			}
+
+			// If EndDates are equal, compare by StartDate (most recent first)
+			return companyExp.Experiences[i].StartDate.After(*companyExp.Experiences[j].StartDate)
 		})
 	}
 
@@ -191,32 +204,67 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 		iExperiences := assistantExperienceByCompany[i].Experiences
 		jExperiences := assistantExperienceByCompany[j].Experiences
 
-		iEarliestStartDate := iExperiences[0].StartDate
-		jEarliestStartDate := jExperiences[0].StartDate
+		// Separate ongoing companies and non-ongoing companies
+		iHasOngoing := false
+		jHasOngoing := false
 
-		iLatestEndDate := iExperiences[len(iExperiences)-1].EndDate
-		jLatestEndDate := jExperiences[len(jExperiences)-1].EndDate
+		var iLatestExperience, jLatestExperience *AssistantExperienceEntry
 
-		if iLatestEndDate == nil && jLatestEndDate != nil {
-			return false
+		// Check if company i has ongoing positions (EndDate is empty)
+		for _, experience := range iExperiences {
+			if experience.EndDate.Equal(time.Time{}) {
+				iHasOngoing = true
+			}
+			if iLatestExperience == nil ||
+				(experience.EndDate != nil && !experience.EndDate.Equal(time.Time{}) && experience.EndDate.After(*iLatestExperience.EndDate)) {
+				iLatestExperience = &experience
+			}
 		}
-		if iLatestEndDate != nil && jLatestEndDate == nil {
-			return true
+
+		// Check if company j has ongoing positions (EndDate is empty)
+		for _, experience := range jExperiences {
+			if experience.EndDate.Equal(time.Time{}) {
+				jHasOngoing = true
+			}
+			if jLatestExperience == nil ||
+				(experience.EndDate != nil && !experience.EndDate.Equal(time.Time{}) && experience.EndDate.After(*jLatestExperience.EndDate)) {
+				jLatestExperience = &experience
+			}
 		}
-		if iLatestEndDate != nil && jLatestEndDate != nil {
-			if iLatestEndDate.After(*jLatestEndDate) {
+
+		// If both companies are ongoing (both have time.Time{} as EndDate)
+		if iHasOngoing && jHasOngoing {
+			// Compare based on the most recent StartDate for ongoing jobs
+			if iLatestExperience.StartDate.After(*jLatestExperience.StartDate) {
 				return true
 			}
-			if iLatestEndDate.Before(*jLatestEndDate) {
+			if iLatestExperience.StartDate.Before(*jLatestExperience.StartDate) {
 				return false
 			}
 		}
 
-		return iEarliestStartDate.After(*jEarliestStartDate)
+		// Otherwise, compare based on EndDate (most recent first) for non-ongoing companies
+		if iHasOngoing {
+			return true // i is ongoing, so it comes first
+		}
+		if jHasOngoing {
+			return false // j is ongoing, so it comes first
+		}
+
+		// Compare based on EndDate for non-ongoing positions
+		if iLatestExperience.EndDate.After(*jLatestExperience.EndDate) {
+			return true
+		}
+		if iLatestExperience.EndDate.Before(*jLatestExperience.EndDate) {
+			return false
+		}
+
+		// If both EndDates are equal, compare by the most recent StartDate
+		return iLatestExperience.StartDate.After(*jLatestExperience.StartDate)
 	})
 
 	groupedHistory["AssistantExperiences"] = assistantExperienceByCompany
-	log.Print(groupedHistory["AssistantExperiences"])
+	log.Print(assistantExperienceByCompany)
 
 	return groupedHistory, nil
 
