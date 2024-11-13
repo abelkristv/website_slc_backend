@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"log"
+	"sort"
 	"time"
 
 	"github.com/abelkristv/slc_website/models"
@@ -126,8 +127,8 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	type AssistantExperienceEntry struct {
 		PositionName        string
 		PositionDescription string
-		StartDate           time.Time
-		EndDate             time.Time
+		StartDate           *time.Time
+		EndDate             *time.Time
 		Location            string
 	}
 
@@ -149,8 +150,8 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 		experienceData := AssistantExperienceEntry{
 			PositionName:        exp.Position.PositionName,
 			PositionDescription: exp.Position.PositionDescription,
-			StartDate:           exp.Position.StartDate,
-			EndDate:             exp.Position.EndDate,
+			StartDate:           &exp.Position.StartDate,
+			EndDate:             &exp.Position.EndDate,
 			Location:            exp.Position.Location,
 		}
 
@@ -164,12 +165,22 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 			}
 			companyExperienceMap[companyName] = newCompanyExperience
 		}
-		
-		
-		
+
 	}
 
 	for _, companyExp := range companyExperienceMap {
+		sort.Slice(companyExp.Experiences, func(i, j int) bool {
+			if companyExp.Experiences[i].EndDate == nil && companyExp.Experiences[j].EndDate == nil {
+				return companyExp.Experiences[i].StartDate.Before(*companyExp.Experiences[j].StartDate)
+			}
+			if companyExp.Experiences[i].EndDate == nil {
+				return true
+			}
+			if companyExp.Experiences[j].EndDate == nil {
+				return false
+			}
+			return companyExp.Experiences[i].EndDate.Before(*companyExp.Experiences[j].EndDate)
+		})
 		assistantExperienceByCompany = append(assistantExperienceByCompany, *companyExp)
 	}
 
