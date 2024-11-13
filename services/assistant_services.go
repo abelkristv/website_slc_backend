@@ -183,6 +183,10 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 		})
 	}
 
+	for _, companyExp := range companyExperienceMap {
+		assistantExperienceByCompany = append(assistantExperienceByCompany, *companyExp)
+	}
+
 	sort.Slice(assistantExperienceByCompany, func(i, j int) bool {
 		iExperiences := assistantExperienceByCompany[i].Experiences
 		jExperiences := assistantExperienceByCompany[j].Experiences
