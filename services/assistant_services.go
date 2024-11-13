@@ -171,15 +171,15 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	for _, companyExp := range companyExperienceMap {
 		sort.Slice(companyExp.Experiences, func(i, j int) bool {
 			if companyExp.Experiences[i].EndDate == nil && companyExp.Experiences[j].EndDate == nil {
-				return companyExp.Experiences[i].StartDate.Before(*companyExp.Experiences[j].StartDate)
+				return companyExp.Experiences[i].StartDate.After(*companyExp.Experiences[j].StartDate)
 			}
 			if companyExp.Experiences[i].EndDate == nil {
-				return true
-			}
-			if companyExp.Experiences[j].EndDate == nil {
 				return false
 			}
-			return companyExp.Experiences[i].EndDate.Before(*companyExp.Experiences[j].EndDate)
+			if companyExp.Experiences[j].EndDate == nil {
+				return true
+			}
+			return companyExp.Experiences[i].EndDate.After(*companyExp.Experiences[j].EndDate)
 		})
 	}
 
@@ -200,14 +200,14 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 
 		if iEarliestStartDate.Equal(*jEarliestStartDate) {
 			if iLatestEndDate == nil {
-				return true
-			}
-			if jLatestEndDate == nil {
 				return false
 			}
-			return iLatestEndDate.Before(*jLatestEndDate)
+			if jLatestEndDate == nil {
+				return true
+			}
+			return iLatestEndDate.After(*jLatestEndDate)
 		}
-		return iEarliestStartDate.Before(*jEarliestStartDate)
+		return iEarliestStartDate.After(*jEarliestStartDate)
 	})
 
 	groupedHistory["AssistantExperiences"] = assistantExperienceByCompany
