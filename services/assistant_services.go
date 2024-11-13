@@ -181,13 +181,40 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 			}
 			return companyExp.Experiences[i].EndDate.Before(*companyExp.Experiences[j].EndDate)
 		})
+	}
+
+	assistantExperienceByCompany = make([]CompanyExperience, 0, len(companyExperienceMap))
+	for _, companyExp := range companyExperienceMap {
 		assistantExperienceByCompany = append(assistantExperienceByCompany, *companyExp)
 	}
+
+	sort.Slice(assistantExperienceByCompany, func(i, j int) bool {
+		iExperiences := assistantExperienceByCompany[i].Experiences
+		jExperiences := assistantExperienceByCompany[j].Experiences
+
+		iEarliestStartDate := iExperiences[0].StartDate
+		jEarliestStartDate := jExperiences[0].StartDate
+
+		iLatestEndDate := iExperiences[len(iExperiences)-1].EndDate
+		jLatestEndDate := jExperiences[len(jExperiences)-1].EndDate
+
+		if iEarliestStartDate.Equal(*jEarliestStartDate) {
+			if iLatestEndDate == nil {
+				return true
+			}
+			if jLatestEndDate == nil {
+				return false
+			}
+			return iLatestEndDate.Before(*jLatestEndDate)
+		}
+		return iEarliestStartDate.Before(*jEarliestStartDate)
+	})
 
 	groupedHistory["AssistantExperiences"] = assistantExperienceByCompany
 	log.Print(groupedHistory["AssistantExperiences"])
 
 	return groupedHistory, nil
+
 }
 
 func (s *AssistantService) CreateAssistant(email, bio, profile_picture, initial, generation string) (*models.Assistant, error) {
