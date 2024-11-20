@@ -161,13 +161,36 @@ func seedAssistantAwards(db *gorm.DB) {
 	log.Println("AssistantAwards table seeded successfully")
 }
 
+func seedSLCPositions(db *gorm.DB) {
+	positions := []models.SLCPosition{
+		{PositionName: "Junior Laboratory Assistant"},
+		{PositionName: "Subject Coordinator Staff"},
+		{PositionName: "Subject Coordinator Officer"},
+		{PositionName: "Network Administration Staff"},
+		{PositionName: "Network Administration Officer"},
+		{PositionName: "Research & Development Staff"},
+		{PositionName: "Research & Development Officer"},
+		{PositionName: "Database Administration Staff"},
+		{PositionName: "Database Administration Officer"},
+		{PositionName: "Operation Manager Officer"},
+	}
+
+	for _, position := range positions {
+		err := db.Create(&position).Error
+		if err != nil {
+			log.Fatalf("Failed to seed SLC positions: %v", err)
+		}
+	}
+
+	log.Println("SLCPosition table seeded successfully")
+}
+
 func SeedDatabase(db *gorm.DB) {
-	seedAwards(db)
-	seedAssistantAwards(db)
+	seedSLCPositions(db)
 }
 
 func ClearDatabase(db *gorm.DB) {
-	tables := []string{"teaching_histories", "periods", "courses", "users", "assistant_positions", "assistant_social_media", "assistants", "social_media", "contact_us"}
+	tables := []string{"teaching_histories", "slc_position", "periods", "courses", "users", "assistant_positions", "assistant_social_media", "assistants", "social_media", "contact_us"}
 
 	for _, table := range tables {
 		err := db.Exec("DELETE FROM " + table).Error
@@ -178,6 +201,11 @@ func ClearDatabase(db *gorm.DB) {
 	}
 
 	err := db.Exec("ALTER SEQUENCE teaching_histories_id_seq RESTART WITH 1").Error
+	if err != nil {
+		log.Fatalf("Failed to reset sequence for users: %v", err)
+	}
+
+	err = db.Exec("ALTER SEQUENCE slc_position_id_seq RESTART WITH 1").Error
 	if err != nil {
 		log.Fatalf("Failed to reset sequence for users: %v", err)
 	}

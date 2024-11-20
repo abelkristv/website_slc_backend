@@ -110,3 +110,14 @@ func RegisterNewsRoutes(router *mux.Router, newsHandler *handlers.NewsHandler) {
 	secured.HandleFunc("/news/{id:[0-9]+}", newsHandler.UpdateNews).Methods("PUT")
 	secured.HandleFunc("/news/{id:[0-9]+}", newsHandler.DeleteNews).Methods("DELETE")
 }
+
+func RegisterSLCPositionRoutes(router *mux.Router, positionHandler *handlers.SLCPositionHandler) {
+	router.HandleFunc("/positions", positionHandler.GetAllPositions).Methods("GET")
+	router.HandleFunc("/positions/{id:[0-9]+}", positionHandler.GetPositionByID).Methods("GET")
+
+	secured := router.PathPrefix("/").Subrouter()
+	secured.Use(middleware.TokenValid)
+	secured.HandleFunc("/positions", positionHandler.CreatePosition).Methods("POST")
+	secured.HandleFunc("/positions/{id:[0-9]+}", positionHandler.UpdatePosition).Methods("PUT")
+	secured.HandleFunc("/positions/{id:[0-9]+}", positionHandler.DeletePosition).Methods("DELETE")
+}

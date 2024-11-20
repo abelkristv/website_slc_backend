@@ -175,6 +175,8 @@ func (h *AssistantHandler) CreateAssistant(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// log.Print(assistant)
+
 	newAssistant, err := h.assistantService.CreateAssistant(assistant.Email, assistant.Bio, assistant.ProfilePicture, assistant.Initial, assistant.Generation)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -198,6 +200,8 @@ func (h *AssistantHandler) UpdateAssistant(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
+	// log.Print(r)
+	log.Print(assistant)
 
 	assistant.ID = uint(id)
 	if err := h.assistantService.UpdateAssistant(&assistant); err != nil {

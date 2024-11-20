@@ -296,15 +296,42 @@ func (s *AssistantService) UpdateAssistant(assistant *models.Assistant) error {
 	if err != nil {
 		return err
 	}
+	if assistant.SLCPositionID != 0 {
+		positionExists, err := s.assistantRepo.CheckPositionExists(assistant.SLCPositionID)
+		if err != nil {
+			return err
+		}
+		if !positionExists {
+			return errors.New("invalid position ID")
+		}
+	}
 	if existingAssistant == nil {
 		return errors.New("user not found")
 	}
 
-	existingAssistant.Email = assistant.Email
-	existingAssistant.Bio = assistant.Bio
-	existingAssistant.ProfilePicture = assistant.ProfilePicture
-	existingAssistant.Initial = assistant.Initial
-	existingAssistant.Generation = assistant.Generation
+	if assistant.Email != "" {
+		existingAssistant.Email = assistant.Email
+	}
+	if assistant.Bio != "" {
+		existingAssistant.Bio = assistant.Bio
+	}
+	if assistant.ProfilePicture != "" {
+		existingAssistant.ProfilePicture = assistant.ProfilePicture
+	}
+	if assistant.Initial != "" {
+		existingAssistant.Initial = assistant.Initial
+	}
+	if assistant.Generation != "" {
+		existingAssistant.Generation = assistant.Generation
+	}
+	if assistant.FullName != "" {
+		existingAssistant.FullName = assistant.FullName
+	}
+	if assistant.SLCPositionID != 0 {
+		existingAssistant.SLCPositionID = assistant.SLCPositionID
+	}
+
+	log.Print(existingAssistant.SLCPositionID)
 
 	return s.assistantRepo.UpdateAssistant(existingAssistant)
 }

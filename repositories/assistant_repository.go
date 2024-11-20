@@ -17,6 +17,7 @@ type AssistantRepository interface {
 	GetAllGenerations() ([]string, error)
 	GetAssistantsByGeneration(generation string) ([]models.Assistant, error)
 	SearchAssistantsByName(name string) ([]models.Assistant, error)
+	CheckPositionExists(positionID uint) (bool, error)
 }
 
 type assistantRepository struct {
@@ -31,7 +32,7 @@ func NewAssistantRepository(db *gorm.DB) AssistantRepository {
 
 func (r *assistantRepository) GetAllAssistants() ([]models.Assistant, error) {
 	var assistant []models.Assistant
-	err := r.db.Find(&assistant).Error
+	err := r.db.Preload("SLCPosition").Find(&assistant).Error
 	if err != nil {
 		return nil, err
 	}
@@ -44,6 +45,7 @@ func (r *assistantRepository) GetAssistantById(id uint) (*models.Assistant, erro
 		return db.Order("period_id")
 	}).
 		Preload("AssistantAward").
+		Preload("SLCPosition").
 		Preload("AssistantAward.Award").
 		Preload("AssistantExperience").
 		Preload("AssistantExperience.Position").
@@ -68,7 +70,23 @@ func (r *assistantRepository) CreateAssistant(user *models.Assistant) error {
 }
 
 func (r *assistantRepository) UpdateAssistant(user *models.Assistant) error {
-	return r.db.Save(user).Error
+	err := r.db.Model(&models.Assistant{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
+		"SLCPositionID":  user.SLCPositionID,
+		"Email":          user.Email,
+		"FullName":       user.FullName,
+		"Bio":            user.Bio,
+		"ProfilePicture": user.ProfilePicture,
+		"Initial":        user.Initial,
+		"Generation":     user.Generation,
+	}).Error
+
+	if err != nil {
+		log.Printf("Error saving assistant: %v", err)
+		return err
+	}
+
+	log.Printf("Assistant with ID %d updated successfully", user.ID)
+	return nil
 }
 
 func (r *assistantRepository) DeleteAssistant(user *models.Assistant) error {
@@ -103,4 +121,15 @@ func (r *assistantRepository) SearchAssistantsByName(name string) ([]models.Assi
 		return nil, err
 	}
 	return assistants, nil
+}
+
+func (repo *assistantRepository) CheckPositionExists(positionID uint) (bool, error) {
+	var position models.SLCPosition
+	if err := repo.db.First(&position, positionID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
