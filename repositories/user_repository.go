@@ -30,10 +30,29 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 
 func (r *userRepository) GetAllUsers() ([]models.User, error) {
 	var users []models.User
-	err := r.db.Preload("Assistant").Preload("Assistant.SLCPosition").Find(&users).Error
+
+	err := r.db.Preload("Assistant", func(db *gorm.DB) *gorm.DB {
+		return db.Preload("TeachingHistory", func(db *gorm.DB) *gorm.DB {
+			return db.Order("period_id")
+		}).
+			Preload("TeachingHistory.Period").
+			Preload("TeachingHistory.Course").
+			Preload("AssistantExperience").
+			Preload("AssistantExperience.Position").
+			Preload("AssistantExperience.Position.Company").
+			Preload("AssistantAward").
+			Preload("AssistantAward.Award").
+			Preload("AssistantSocialMedia").
+			Preload("SLCPosition")
+	}).Find(&users).Error
+
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	return users, nil
 }
 
