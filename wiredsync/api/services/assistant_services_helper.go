@@ -61,13 +61,14 @@ func processUser(db *gorm.DB, s *AssistantService, user api_models.Assistant, st
 	email := fetchEmail(user.BinusianID)
 
 	assistant := createAssistant(db, user, email, status, binusianData.BirthDate)
-	createUser(db, user, int(assistant.ID))
+	createUser(db, user, assistant, int(assistant.ID))
 
 	return true
 }
 
 func fetchBinusianData(binusianID string) (BinusianResponse, error) {
-	url := fmt.Sprintf("%sStudent/GetBinusianByIds?binusianIds=%s", config.BaseURL, binusianID)
+	url := fmt.Sprintf("%s/Student/GetBinusianByIds?binusianIds=%s", config.BaseURL, binusianID)
+	log.Printf("Fetching dob data of %s from api : %s", binusianID, url)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -111,9 +112,24 @@ func createAssistant(db *gorm.DB, user api_models.Assistant, email string, statu
 		generation = user.Username[2:]
 	}
 
-	parsedDob, err := time.Parse("2006-01-02", birthDate)
-	if err != nil {
-		log.Printf("Error parsing birthDate '%s': %v", birthDate, err)
+	layouts := []string{
+		"2006-01-02T15:04:05.000",
+		"2006-01-02T15:04:05",
+		"2006-01-02",
+	}
+
+	var parsedDob time.Time
+	var parseErr error
+
+	for _, layout := range layouts {
+		parsedDob, parseErr = time.Parse(layout, birthDate)
+		if parseErr == nil {
+			break
+		}
+	}
+
+	if parseErr != nil {
+		log.Printf("Error parsing birthDate '%s': %v", birthDate, parseErr)
 		parsedDob = time.Time{}
 	}
 
@@ -134,8 +150,8 @@ func createAssistant(db *gorm.DB, user api_models.Assistant, email string, statu
 	return assistant
 }
 
-func createUser(db *gorm.DB, user api_models.Assistant, assistantID int) {
-	hashedPassword := generatePassword(user.Username)
+func createUser(db *gorm.DB, user api_models.Assistant, assistant models.Assistant, assistantID int) {
+	hashedPassword := generatePassword(assistant)
 
 	newUser := models.User{
 		Username:    user.Username,
@@ -150,8 +166,9 @@ func createUser(db *gorm.DB, user api_models.Assistant, assistantID int) {
 	fmt.Printf("Created new user: %s\n", newUser.Username)
 }
 
-func generatePassword(username string) string {
-	rawPassword := username + username + username
+func generatePassword(assistant models.Assistant) string {
+	rawPassword := assistant.DOB.Format("02-01-2006")
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(rawPassword), bcrypt.DefaultCost)
 	if err != nil {
 		log.Fatalf("Failed to hash password: %v", err)

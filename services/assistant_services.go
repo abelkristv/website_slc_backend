@@ -297,8 +297,8 @@ func (s *AssistantService) UpdateAssistant(assistant *models.Assistant) error {
 	if err != nil {
 		return err
 	}
-	if assistant.SLCPositionID != 0 {
-		positionExists, err := s.assistantRepo.CheckPositionExists(assistant.SLCPositionID)
+	if *assistant.SLCPositionID != 0 {
+		positionExists, err := s.assistantRepo.CheckPositionExists(*assistant.SLCPositionID)
 		if err != nil {
 			return err
 		}
@@ -328,7 +328,7 @@ func (s *AssistantService) UpdateAssistant(assistant *models.Assistant) error {
 	if assistant.FullName != "" {
 		existingAssistant.FullName = assistant.FullName
 	}
-	if assistant.SLCPositionID != 0 {
+	if *assistant.SLCPositionID != 0 {
 		existingAssistant.SLCPositionID = assistant.SLCPositionID
 	}
 

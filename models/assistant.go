@@ -15,8 +15,8 @@ type Assistant struct {
 	Initial              string `gorm:"size:6"`
 	Generation           string `gorm:"size:60"`
 	Status               string `gorm:"size:10"`
-	SLCPositionID        uint
-	SLCPosition          SLCPosition           `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	SLCPositionID        *uint
+	SLCPosition          *SLCPosition          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	TeachingHistory      []TeachingHistory     `gorm:"foreignKey:AssistantId"`
 	AssistantSocialMedia AssistantSocialMedia  `gorm:"foreignKey:AssistantId"`
 	AssistantExperience  []AssistantExperience `gorm:"foreignKey:AssistantId"`

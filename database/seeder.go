@@ -190,7 +190,7 @@ func SeedDatabase(db *gorm.DB) {
 }
 
 func ClearDatabase(db *gorm.DB) {
-	tables := []string{"teaching_histories", "slc_positions", "positions", "periods", "courses", "users", "assistant_social_media", "assistants", "social_media", "contact_us"}
+	tables := []string{"teaching_histories", "slc_positions", "positions", "periods", "courses", "users", "assistant_social_media", "assistants", "contact_us"}
 
 	for _, table := range tables {
 		err := db.Exec("DELETE FROM " + table).Error
@@ -206,11 +206,6 @@ func ClearDatabase(db *gorm.DB) {
 	}
 
 	err = db.Exec("ALTER SEQUENCE slc_positions_id_seq RESTART WITH 1").Error
-	if err != nil {
-		log.Fatalf("Failed to reset sequence for users: %v", err)
-	}
-
-	err = db.Exec("ALTER SEQUENCE social_media_id_seq RESTART WITH 1").Error
 	if err != nil {
 		log.Fatalf("Failed to reset sequence for users: %v", err)
 	}

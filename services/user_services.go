@@ -257,11 +257,27 @@ func (s *UserService) Login(username, password string) (string, *UserResponse, e
 		return "", &UserResponse{}, err
 	}
 
+	formatDOB := func(dob time.Time) time.Time {
+		formattedDate, err := time.Parse("02-01-2006", dob.Format("02-01-2006"))
+		if err != nil {
+			log.Printf("Error formatting DOB '%s': %v", dob.String(), err)
+			return dob // Return the original value if there's an error
+		}
+		return formattedDate
+	}
+
+	if !userToReturn.Assistant.DOB.IsZero() {
+		userToReturn.Assistant.DOB = formatDOB(userToReturn.Assistant.DOB)
+	}
+
 	userResponse := &UserResponse{
 		ID:        userToReturn.ID,
 		Username:  userToReturn.Username,
 		Assistant: userToReturn.Assistant,
 	}
+
+	// log.Print(user.Password)
+	// log.Print(password)
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
@@ -275,9 +291,6 @@ func (s *UserService) Login(username, password string) (string, *UserResponse, e
 			ExpiresAt: expirationTime.Unix(),
 		},
 	}
-
-	log.Print(user.Username)
-	log.Print(user.ID)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtKey)
