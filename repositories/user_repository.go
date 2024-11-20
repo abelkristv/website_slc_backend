@@ -30,7 +30,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 
 func (r *userRepository) GetAllUsers() ([]models.User, error) {
 	var users []models.User
-	err := r.db.Preload("Assistant").Find(&users).Error
+	err := r.db.Preload("Assistant").Preload("Assistant.SLCPosition").Find(&users).Error
 	if err != nil {
 		return nil, err
 	}

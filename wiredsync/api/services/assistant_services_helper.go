@@ -55,7 +55,7 @@ func processUser(db *gorm.DB, s *AssistantService, user api_models.Assistant, st
 	binusianData, err := fetchBinusianData(user.BinusianID)
 	if err != nil {
 		log.Printf("Error fetching Binusian data for %s: %v", user.BinusianID, err)
-		return false
+		// return false
 	}
 
 	email := fetchEmail(user.BinusianID)
@@ -69,7 +69,13 @@ func processUser(db *gorm.DB, s *AssistantService, user api_models.Assistant, st
 func fetchBinusianData(binusianID string) (BinusianResponse, error) {
 	url := fmt.Sprintf("%sStudent/GetBinusianByIds?binusianIds=%s", config.BaseURL, binusianID)
 
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return BinusianResponse{}, err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return BinusianResponse{}, err
 	}
