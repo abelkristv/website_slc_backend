@@ -145,9 +145,21 @@ func (r *userRepository) DeleteUser(user *models.User) error {
 
 func (r *userRepository) GetPaginatedUsers(offset, limit int) ([]models.User, error) {
 	var users []models.User
-	if err := r.db.Preload("Assistant").Offset(offset).Limit(limit).Find(&users).Error; err != nil {
+
+	err := r.db.Preload("Assistant", func(db *gorm.DB) *gorm.DB {
+		return db.Preload("TeachingHistory", func(db *gorm.DB) *gorm.DB {
+			return db.Order("period_id")
+		}).
+			Preload("SLCPosition")
+	}).Offset(offset).Limit(limit).Find(&users).Error
+
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
+
 	return users, nil
 }
 
