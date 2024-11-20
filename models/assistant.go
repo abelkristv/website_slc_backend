@@ -1,6 +1,10 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Assistant struct {
 	gorm.Model
@@ -17,4 +21,5 @@ type Assistant struct {
 	AssistantSocialMedia AssistantSocialMedia  `gorm:"foreignKey:AssistantId"`
 	AssistantExperience  []AssistantExperience `gorm:"foreignKey:AssistantId"`
 	AssistantAward       []AssistantAward      `gorm:"foreignKey:AssistantId"`
+	DOB                  time.Time
 }

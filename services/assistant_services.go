@@ -52,6 +52,7 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	groupedHistory["Initial"] = assistant.Initial
 	groupedHistory["Generation"] = assistant.Generation
 	groupedHistory["Status"] = assistant.Status
+	groupedHistory["SLCPosition"] = assistant.SLCPosition
 
 	type SocialMediaResponse struct {
 		AssistantId         int
