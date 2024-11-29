@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/abelkristv/slc_website/middleware"
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/services"
 	"github.com/gorilla/mux"
@@ -12,26 +13,54 @@ import (
 
 type NewsHandler struct {
 	service services.NewsService
+	userService services.UserService
 }
 
-func NewNewsHandler(service services.NewsService) *NewsHandler {
-	return &NewsHandler{service: service}
+func NewNewsHandler(service services.NewsService, userService services.UserService) *NewsHandler {
+	return &NewsHandler{
+		service: service,
+		userService: userService,
+	}
 }
 
 func (h *NewsHandler) CreateNews(w http.ResponseWriter, r *http.Request) {
-	var news models.News
-	if err := json.NewDecoder(r.Body).Decode(&news); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+    userID, ok := r.Context().Value(middleware.ContextUserIDKey).(uint)
+    if !ok {
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return
+    }
 
-	if err := h.service.CreateNews(&news); err != nil {
-		http.Error(w, "Failed to create news", http.StatusInternalServerError)
-		return
-	}
+    user, err := h.userService.GetUserByID(userID)
+    if err != nil {
+        http.Error(w, "Error retrieving user", http.StatusInternalServerError)
+        return
+    }
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(news)
+    if user.AssistantId == 0 {
+        http.Error(w, "No associated Assistant ID for user", http.StatusNotFound)
+        return
+    }
+
+    var news models.News
+    if err := json.NewDecoder(r.Body).Decode(&news); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    if len(news.NewsImages) == 0 {
+        http.Error(w, "No images provided", http.StatusBadRequest)
+        return
+    }
+
+    news.AssistantId = user.AssistantId
+
+    if err := h.service.CreateNews(&news); err != nil {
+        http.Error(w, "Failed to create news", http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(news)
 }
 
 func (h *NewsHandler) GetNewsByID(w http.ResponseWriter, r *http.Request) {

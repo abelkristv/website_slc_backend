@@ -68,7 +68,7 @@ func main() {
 
 	newsRepo := repositories.NewNewsRepository(db)
 	newsService := services.NewNewsService(newsRepo)
-	newsHandler := handlers.NewNewsHandler(newsService)
+	newsHandler := handlers.NewNewsHandler(newsService, *userService)
 
 	slcPositionRepo := repositories.NewSLCPositionRepository(db)
 	slcPositionService := services.NewSLCPositionService(slcPositionRepo)
