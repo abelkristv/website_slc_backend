@@ -90,19 +90,44 @@ func (h *NewsHandler) GetAllNews(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *NewsHandler) UpdateNews(w http.ResponseWriter, r *http.Request) {
-	var news models.News
-	if err := json.NewDecoder(r.Body).Decode(&news); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+    userID, ok := r.Context().Value(middleware.ContextUserIDKey).(uint)
+    if !ok {
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return
+    }
 
-	if err := h.service.UpdateNews(&news); err != nil {
-		http.Error(w, "Failed to update news", http.StatusInternalServerError)
-		return
-	}
+    user, err := h.userService.GetUserByID(userID)
+    if err != nil {
+        http.Error(w, "Error retrieving user", http.StatusInternalServerError)
+        return
+    }
 
-	json.NewEncoder(w).Encode(news)
+    if user.AssistantId == 0 {
+        http.Error(w, "No associated Assistant ID for user", http.StatusNotFound)
+        return
+    }
+
+    var news models.News
+    if err := json.NewDecoder(r.Body).Decode(&news); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    if len(news.NewsImages) == 0 {
+        http.Error(w, "No images provided", http.StatusBadRequest)
+        return
+    }
+
+    news.AssistantId = user.AssistantId
+
+    if err := h.service.UpdateNews(&news); err != nil {
+        http.Error(w, "Failed to update news", http.StatusInternalServerError)
+        return
+    }
+
+    json.NewEncoder(w).Encode(news)
 }
+
 
 func (h *NewsHandler) DeleteNews(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
