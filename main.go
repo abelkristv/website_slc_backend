@@ -31,17 +31,14 @@ func main() {
 		log.Fatal("Could not connect to the database")
 	}
 
-	// User setup
 	userRepo := repositories.NewUserRepository(db)
 	userService := services.NewUserService(userRepo)
 	userHandler := handlers.NewUserHandler(userService)
 
-	// Assistant setup
 	assistantRepo := repositories.NewAssistantRepository(db)
 	assistantService := services.NewAssistantService(assistantRepo)
 	assistantHandler := handlers.NewAssistantHandler(assistantService)
 
-	// Event setup
 	eventRepo := repositories.NewEventRepository(db)
 	eventService := services.NewEventService(eventRepo)
 	eventHandler := handlers.NewEventHandler(eventService)
@@ -74,6 +71,10 @@ func main() {
 	slcPositionService := services.NewSLCPositionService(slcPositionRepo)
 	slcPositionHandler := handlers.NewSLCPositionHandler(slcPositionService)
 
+	galleryRepo := repositories.NewGalleryRepository(db)
+	galleryService := services.NewGalleryService(galleryRepo)
+	galleryHandler := handlers.NewGalleryHandler(galleryService, *userService)
+
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH"},
@@ -94,6 +95,7 @@ func main() {
 	routes.RegisterAwardRoutes(router, awardHandler)
 	routes.RegisterNewsRoutes(router, newsHandler)
 	routes.RegisterSLCPositionRoutes(router, slcPositionHandler)
+	routes.RegisterGalleryRoutes(router, galleryHandler)
 
 	log.Println("Starting server on :8888")
 	log.Fatal(http.ListenAndServe(":8888", handler))

@@ -121,3 +121,15 @@ func RegisterSLCPositionRoutes(router *mux.Router, positionHandler *handlers.SLC
 	secured.HandleFunc("/positions/{id:[0-9]+}", positionHandler.UpdatePosition).Methods("PUT")
 	secured.HandleFunc("/positions/{id:[0-9]+}", positionHandler.DeletePosition).Methods("DELETE")
 }
+
+func RegisterGalleryRoutes(router *mux.Router, galleryHandler *handlers.GalleryHandler) {
+	router.HandleFunc("/galleries", galleryHandler.GetAcceptedGalleries).Methods("GET")
+	
+	secured := router.PathPrefix("/").Subrouter()
+	secured.Use(middleware.TokenValid)
+	router.HandleFunc("/my-galleries", galleryHandler.GetMyGalleries).Methods("GET")
+	router.HandleFunc("/pending-galleries", galleryHandler.GetPendingGalleries).Methods("GET")
+	secured.HandleFunc("/galleries", galleryHandler.CreateGallery).Methods("POST")
+	secured.HandleFunc("/galleries/{id:[0-9]+}", galleryHandler.UpdateGallery).Methods("PUT")
+	secured.HandleFunc("/galleries/{id:[0-9]+}", galleryHandler.DeleteGallery).Methods("DELETE")
+}
