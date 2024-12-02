@@ -52,9 +52,9 @@ func (r *galleryRepository) DeleteGallery(id uint) error {
 }
 
 func (r *galleryRepository) GetByStatus(status string, galleries *[]models.Gallery) error {
-	return r.db.Where("gallery_status = ?", status).Find(galleries).Error
+    return r.db.Preload("Assistant").Where("gallery_status = ?", status).Find(galleries).Error
 }
 
 func (r *galleryRepository) GetByAssistantID(assistantID uint, galleries *[]models.Gallery) error {
-	return r.db.Where("assistant_id = ?", assistantID).Find(galleries).Error
+    return r.db.Preload("Assistant").Where("assistant_id = ?", assistantID).Find(galleries).Error
 }
