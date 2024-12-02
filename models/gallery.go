@@ -10,7 +10,7 @@ type Gallery struct {
     AssistantId				int
     GalleryTitle			string
     GalleryDescription		string
-	Status 					string
+	GalleryStatus 					string
     Assistant				*Assistant     `gorm:"foreignKey:AssistantId"`
     GalleryImages			pq.StringArray `gorm:"type:text[]"`
 }

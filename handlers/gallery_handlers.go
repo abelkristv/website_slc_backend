@@ -55,9 +55,9 @@ func (h *GalleryHandler) CreateGallery(w http.ResponseWriter, r *http.Request) {
 	gallery.AssistantId = user.AssistantId
 
 	if user.Assistant.SLCPosition.PositionName == "Operations Management Officer" {
-		gallery.Status = "accepted"
+		gallery.GalleryStatus = "accepted"
 	} else {
-		gallery.Status = "pending"
+		gallery.GalleryStatus = "pending"
 	}
 
 	if err := h.service.CreateGallery(&gallery); err != nil {
