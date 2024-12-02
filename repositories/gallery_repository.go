@@ -29,7 +29,7 @@ func (r *galleryRepository) CreateGallery(gallery *models.Gallery) error {
 
 func (r *galleryRepository) GetGalleryByID(id uint) (*models.Gallery, error) {
 	var gallery models.Gallery
-	if err := r.db.First(&gallery, id).Error; err != nil {
+	if err := r.db.Preload("Assistant").First(&gallery, id).Error; err != nil {
 		return nil, err
 	}
 	return &gallery, nil
@@ -37,7 +37,7 @@ func (r *galleryRepository) GetGalleryByID(id uint) (*models.Gallery, error) {
 
 func (r *galleryRepository) GetAllGalleries() ([]models.Gallery, error) {
 	var galleries []models.Gallery
-	if err := r.db.Find(&galleries).Error; err != nil {
+	if err := r.db.Preload("Assistant").Find(&galleries).Error; err != nil {
 		return nil, err
 	}
 	return galleries, nil
@@ -52,7 +52,7 @@ func (r *galleryRepository) DeleteGallery(id uint) error {
 }
 
 func (r *galleryRepository) GetByStatus(status string, galleries *[]models.Gallery) error {
-	return r.db.Where("status = ?", status).Find(galleries).Error
+	return r.db.Where("gallery_status = ?", status).Find(galleries).Error
 }
 
 func (r *galleryRepository) GetByAssistantID(assistantID uint, galleries *[]models.Gallery) error {
