@@ -13,6 +13,8 @@ type GalleryService interface {
 	DeleteGallery(id uint) error
 	GetGalleriesByStatus(status string) ([]models.Gallery, error)
 	GetGalleriesByAssistantID(assistantID uint) ([]models.Gallery, error)
+	AcceptGallery(gallery *models.Gallery) error
+	RejectGallery(gallery *models.Gallery) error
 }
 
 type galleryService struct {
@@ -53,4 +55,14 @@ func (s *galleryService) GetGalleriesByAssistantID(assistantID uint) ([]models.G
 	var galleries []models.Gallery
 	err := s.repo.GetByAssistantID(assistantID, &galleries)
 	return galleries, err
+}
+
+func (s *galleryService) AcceptGallery(gallery *models.Gallery) error {
+	gallery.GalleryStatus = "accepted"
+	return s.repo.UpdateGallery(gallery)
+}
+
+func (s *galleryService) RejectGallery(gallery *models.Gallery) error {
+	gallery.GalleryStatus = "rejected"
+	return s.repo.UpdateGallery(gallery)
 }

@@ -201,3 +201,51 @@ func (h *GalleryHandler) DeleteGallery(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(map[string]string{"message": "Gallery deleted successfully"})
 }
+
+func (h *GalleryHandler) AcceptGallery(w http.ResponseWriter, r *http.Request) {
+	idParam := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		http.Error(w, "Invalid gallery ID", http.StatusBadRequest)
+		return
+	}
+
+	gallery, err := h.service.GetGalleryByID(uint(id))
+	if err != nil {
+		http.Error(w, "Failed to retrieve gallery", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.service.AcceptGallery(gallery)
+	if err != nil {
+		http.Error(w, "Failed to accept gallery", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Gallery accepted successfully"))
+}
+
+func (h *GalleryHandler) RejectGallery(w http.ResponseWriter, r *http.Request) {
+	idParam := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		http.Error(w, "Invalid gallery ID", http.StatusBadRequest)
+		return
+	}
+
+	gallery, err := h.service.GetGalleryByID(uint(id))
+	if err != nil {
+		http.Error(w, "Failed to retrieve gallery", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.service.RejectGallery(gallery)
+	if err != nil {
+		http.Error(w, "Failed to reject gallery", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Gallery rejected successfully"))
+}
