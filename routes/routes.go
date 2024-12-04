@@ -127,7 +127,7 @@ func RegisterGalleryRoutes(router *mux.Router, galleryHandler *handlers.GalleryH
 	
 	secured := router.PathPrefix("/").Subrouter()
 	secured.Use(middleware.TokenValid)
-	router.HandleFunc("/pending-galleries", galleryHandler.GetPendingGalleries).Methods("GET")
+	secured.HandleFunc("/all-galleries", galleryHandler.GetAllGalleries).Methods("GET")
 	secured.HandleFunc("/my-galleries", galleryHandler.GetMyGalleries).Methods("GET")
 	secured.HandleFunc("/galleries", galleryHandler.CreateGallery).Methods("POST")
 	secured.HandleFunc("/galleries/{id:[0-9]+}", galleryHandler.UpdateGallery).Methods("PUT")

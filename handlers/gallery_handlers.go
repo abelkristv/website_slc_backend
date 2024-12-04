@@ -79,8 +79,8 @@ func (h *GalleryHandler) GetAcceptedGalleries(w http.ResponseWriter, r *http.Req
 	json.NewEncoder(w).Encode(galleries)
 }
 
-func (h *GalleryHandler) GetPendingGalleries(w http.ResponseWriter, r *http.Request) {
-	galleries, err := h.service.GetGalleriesByStatus("pending")
+func (h *GalleryHandler) GetAllGalleries(w http.ResponseWriter, r *http.Request) {
+	galleries, err := h.service.GetAllGalleries()
 	if err != nil {
 		http.Error(w, "Failed to retrieve galleries", http.StatusInternalServerError)
 		return
@@ -134,29 +134,46 @@ func (h *GalleryHandler) UpdateGallery(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    var gallery models.Gallery
-    if err := json.NewDecoder(r.Body).Decode(&gallery); err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
+    galleryID, err := strconv.Atoi(mux.Vars(r)["id"])
+    if err != nil {
+        http.Error(w, "Invalid gallery ID", http.StatusBadRequest)
         return
     }
 
-    if len(gallery.GalleryImages) == 0 {
-        http.Error(w, "No images provided", http.StatusBadRequest)
+    existingGallery, err := h.service.GetGalleryByID(uint(galleryID))
+    if err != nil {
+        http.Error(w, "Gallery not found", http.StatusNotFound)
         return
     }
 
-    if gallery.AssistantId != user.AssistantId {
+    if existingGallery.AssistantId != user.AssistantId {
         http.Error(w, "Unauthorized to update this gallery", http.StatusForbidden)
         return
     }
 
-    if err := h.service.UpdateGallery(&gallery); err != nil {
+    var updatedGallery models.Gallery
+    if err := json.NewDecoder(r.Body).Decode(&updatedGallery); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    updatedGallery.ID = existingGallery.ID
+    updatedGallery.AssistantId = existingGallery.AssistantId
+
+	if user.Assistant.SLCPosition.PositionName == "Operations Management Officer" {
+		updatedGallery.GalleryStatus = "accepted"
+	} else {
+		updatedGallery.GalleryStatus = "pending"
+	}
+
+    if err := h.service.UpdateGallery(&updatedGallery); err != nil {
         http.Error(w, "Failed to update gallery", http.StatusInternalServerError)
         return
     }
 
-    json.NewEncoder(w).Encode(gallery)
+    json.NewEncoder(w).Encode(updatedGallery)
 }
+
 
 func (h *GalleryHandler) DeleteGallery(w http.ResponseWriter, r *http.Request) {
     userID, ok := r.Context().Value(middleware.ContextUserIDKey).(uint)
