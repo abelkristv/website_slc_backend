@@ -13,6 +13,7 @@ type GalleryRepository interface {
 	DeleteGallery(id uint) error
 	GetByStatus(status string, galleries *[]models.Gallery) error
 	GetByAssistantID(assistantID uint, galleries *[]models.Gallery) error
+	GetUserByID(userID uint) (*models.User, error)
 }
 
 type galleryRepository struct {
@@ -21,6 +22,12 @@ type galleryRepository struct {
 
 func NewGalleryRepository(db *gorm.DB) GalleryRepository {
 	return &galleryRepository{db: db}
+}
+
+func (r *galleryRepository) GetUserByID(userID uint) (*models.User, error) {
+	var user models.User
+	err := r.db.Where("id = ?", userID).First(&user).Error
+	return &user, err
 }
 
 func (r *galleryRepository) CreateGallery(gallery *models.Gallery) error {
@@ -52,9 +59,9 @@ func (r *galleryRepository) DeleteGallery(id uint) error {
 }
 
 func (r *galleryRepository) GetByStatus(status string, galleries *[]models.Gallery) error {
-    return r.db.Preload("Assistant").Where("gallery_status = ?", status).Find(galleries).Error
+	return r.db.Preload("Assistant").Where("gallery_status = ?", status).Find(galleries).Error
 }
 
 func (r *galleryRepository) GetByAssistantID(assistantID uint, galleries *[]models.Gallery) error {
-    return r.db.Preload("Assistant").Where("assistant_id = ?", assistantID).Find(galleries).Error
+	return r.db.Preload("Assistant").Where("assistant_id = ?", assistantID).Find(galleries).Error
 }
