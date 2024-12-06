@@ -92,3 +92,14 @@ func (h *AwardHandler) GetAllAwards(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(awards)
 }
+
+func (h *AwardHandler) GetAllAwardsGroupedByPeriod(w http.ResponseWriter, r *http.Request) {
+	periods, err := h.service.GetAwardsGroupedByPeriod()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(periods)
+}

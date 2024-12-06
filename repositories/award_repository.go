@@ -12,6 +12,7 @@ type AwardRepository interface {
 	UpdateAward(award *models.Award) error
 	DeleteAward(id uint) error
 	GetAllAwards() ([]models.Award, error)
+	GetAllAwardsGroupedByPeriod() ([]models.Period, error)
 }
 
 type awardRepository struct {
@@ -48,4 +49,13 @@ func (r *awardRepository) GetAllAwards() ([]models.Award, error) {
 		return nil, err
 	}
 	return awards, nil
+}
+
+func (r *awardRepository) GetAllAwardsGroupedByPeriod() ([]models.Period, error) {
+	var periods []models.Period
+	err := r.db.Debug().
+		Preload("AssistantAwards.Award").
+		Preload("AssistantAwards.Assistant").
+		Find(&periods).Error
+	return periods, err
 }

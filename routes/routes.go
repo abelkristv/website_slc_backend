@@ -86,7 +86,7 @@ func RegisterAwardRoutes(router *mux.Router, handler *handlers.AwardHandler) {
 	router.HandleFunc("/awards/{id:[0-9]+}", handler.GetAwardByID).Methods("GET")
 	router.HandleFunc("/awards/{id:[0-9]+}", handler.UpdateAward).Methods("PUT")
 	router.HandleFunc("/awards/{id:[0-9]+}", handler.DeleteAward).Methods("DELETE")
-	router.HandleFunc("/awards", handler.GetAllAwards).Methods("GET")
+	router.HandleFunc("/awards", handler.GetAllAwardsGroupedByPeriod).Methods("GET")
 }
 
 func RegisterAssistantAwardRoutes(router *mux.Router, handler *handlers.AssistantAwardHandler) {
@@ -124,7 +124,7 @@ func RegisterSLCPositionRoutes(router *mux.Router, positionHandler *handlers.SLC
 
 func RegisterGalleryRoutes(router *mux.Router, galleryHandler *handlers.GalleryHandler) {
 	router.HandleFunc("/galleries", galleryHandler.GetAcceptedGalleries).Methods("GET")
-	
+
 	secured := router.PathPrefix("/").Subrouter()
 	secured.Use(middleware.TokenValid)
 	secured.HandleFunc("/all-galleries", galleryHandler.GetAllGalleries).Methods("GET")
