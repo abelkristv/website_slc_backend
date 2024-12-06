@@ -25,10 +25,15 @@ func NewGalleryRepository(db *gorm.DB) GalleryRepository {
 }
 
 func (r *galleryRepository) GetUserByID(userID uint) (*models.User, error) {
-	var user models.User
-	err := r.db.Where("id = ?", userID).First(&user).Error
-	return &user, err
+    var user models.User
+    err := r.db.
+        Preload("Assistant.SLCPosition").
+        Where("id = ?", userID).
+        First(&user).
+        Error
+    return &user, err
 }
+
 
 func (r *galleryRepository) CreateGallery(gallery *models.Gallery) error {
 	return r.db.Create(gallery).Error
