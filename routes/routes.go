@@ -135,3 +135,10 @@ func RegisterGalleryRoutes(router *mux.Router, galleryHandler *handlers.GalleryH
 	secured.HandleFunc("/galleries/{id:[0-9]+}/accept", galleryHandler.AcceptGallery).Methods("PATCH")
 	secured.HandleFunc("/galleries/{id:[0-9]+}/reject", galleryHandler.RejectGallery).Methods("PATCH")
 }
+
+func RegisterWiredSyncRoutes(router *mux.Router, wiredsyncHandler *handlers.WiredSyncHandler) {
+
+	secured := router.PathPrefix("/").Subrouter()
+	secured.Use(middleware.TokenValid)
+	secured.HandleFunc("/wiredsync", wiredsyncHandler.RunProgram).Methods("POST")
+}

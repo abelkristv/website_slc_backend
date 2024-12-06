@@ -15,19 +15,18 @@ import (
 	"github.com/abelkristv/slc_website/wiredsync/api/token"
 	"github.com/abelkristv/slc_website/wiredsync/config"
 	"github.com/abelkristv/slc_website/wiredsync/database"
-	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
 var client *http.Client
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file")
+	if len(os.Args) < 3 {
+		log.Fatalf("Usage: %s <USERNAME_WIREDSYNC> <PASSWORD_WIREDSYNC>", os.Args[0])
 	}
 
-	username := os.Getenv("USERNAME_WIREDSYNC")
-	password := os.Getenv("PASSWORD_WIREDSYNC")
+	username := os.Args[1]
+	password := os.Args[2]
 	if username == "" || password == "" {
 		log.Fatalf("USERNAME_WIREDSYNC or PASSWORD_WIREDSYNC is not set in .env")
 	}

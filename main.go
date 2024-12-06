@@ -75,6 +75,8 @@ func main() {
 	galleryService := services.NewGalleryService(galleryRepo)
 	galleryHandler := handlers.NewGalleryHandler(galleryService, *userService)
 
+	wiredsyncHandler := handlers.NewWiredSyncHandler()
+
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH"},
@@ -96,6 +98,7 @@ func main() {
 	routes.RegisterNewsRoutes(router, newsHandler)
 	routes.RegisterSLCPositionRoutes(router, slcPositionHandler)
 	routes.RegisterGalleryRoutes(router, galleryHandler)
+	routes.RegisterWiredSyncRoutes(router, wiredsyncHandler)
 
 	log.Println("Starting server on :8888")
 	log.Fatal(http.ListenAndServe(":8888", handler))
