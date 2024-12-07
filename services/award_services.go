@@ -9,23 +9,23 @@ import (
 )
 
 type AssistantResponse struct {
-	ID             uint   `json:"id"`
-	FullName       string `json:"fullName"`
-	Email          string `json:"email"`
-	ProfilePicture string `json:"profilePicture"`
-	Initial        string `json:"initial"`
-	Generation     string `json:"generation"`
-	Status         string `json:"status"`
+	ID             uint
+	FullName       string
+	Email          string
+	ProfilePicture string
+	Initial        string
+	Generation     string
+	Status         string
 }
 
 type AwardResponse struct {
-	AwardTitle string              `json:"awardTitle"`
-	Assistants []AssistantResponse `json:"assistants"`
+	AwardTitle string
+	Assistants []AssistantResponse
 }
 
 type PeriodResponse struct {
-	PeriodTitle string          `json:"periodTitle"`
-	Awards      []AwardResponse `json:"awards"`
+	PeriodTitle string
+	Awards      []AwardResponse
 }
 
 type AwardService interface {
