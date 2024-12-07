@@ -10,6 +10,7 @@ class Assistant(Base):
     __tablename__ = 'assistants'
     id = Column(Integer, primary_key=True, autoincrement=True)
     initial = Column(String(10), unique=True, nullable=False)
+    full_name = Column(String)
 
 class Award(Base):
     __tablename__ = 'awards'
@@ -40,9 +41,12 @@ Base.metadata.create_all(engine)
 def normalize_semester(semester):
     """Normalize the semester format for comparison."""
     parts = semester.split()
-    if len(parts) == 2:
+    if len(parts) == 2:  # Handles "Spring 2023" cases
         return f"{parts[0]} Semester {parts[1]}"
-    return semester
+    elif len(parts) == 3 and parts[0].lower() in {"odd", "even"}:  # Handles "odd 2022/2023"
+        return f"{parts[0].capitalize()} Semester {parts[1]}/{parts[2]}"
+    return semester  # Return as is if it doesn't match the expected format
+
 
 def insert_assistant_awards_from_xlsx(file_path):
     try:
@@ -55,24 +59,24 @@ def insert_assistant_awards_from_xlsx(file_path):
             print(f"Processing row: {row}")
 
             # Check for invalid rows (skip rows with missing Initial or required columns)
-            if row[1] is None or row[4] is None or row[5] is None:
+            if row[3] is None or row[4] is None or row[5] is None:
                 print(f"Skipping row with missing or invalid data: {row}")
                 continue
 
             # Extract data
-            initial = str(row[1]).strip() if row[1] else None
+            name = str(row[3]).strip() if row[3] else None
             award_name = str(row[4]).strip()
             semester = normalize_semester(str(row[5]).strip())
 
             # Validate Initial
-            if not initial:
-                print(f"Skipping row with missing or invalid Initial: {row}")
+            if not name:
+                print(f"Skipping row with missing or invalid name: {row}")
                 continue
 
             # Find the assistant by initial
-            assistant = session.query(Assistant).filter_by(initial=initial).first()
+            assistant = session.query(Assistant).filter_by(full_name=name).first()
             if not assistant:
-                print(f"Assistant with initial '{initial}' not found. Skipping row.")
+                print(f"Assistant with name '{name}' not found. Skipping row.")
                 continue
 
             # Find the award by award name
@@ -93,7 +97,7 @@ def insert_assistant_awards_from_xlsx(file_path):
             ).first()
 
             if existing_entry:
-                print(f"AssistantAward for Assistant '{initial}', Award '{award_name}', and Period '{semester}' already exists. Skipping.")
+                print(f"AssistantAward for Assistant '{name}', Award '{award_name}', and Period '{semester}' already exists. Skipping.")
                 continue
 
             # Insert the assistant-award relationship
@@ -104,7 +108,7 @@ def insert_assistant_awards_from_xlsx(file_path):
                 award_image="",  # Add image path if needed
             )
             session.add(new_assistant_award)
-            print(f"Inserted AssistantAward for Assistant '{initial}', Award '{award_name}', and Period '{semester}'.")
+            print(f"Inserted AssistantAward for Assistant '{name}', Award '{award_name}', and Period '{semester}'.")
 
         # Commit the transaction
         session.commit()
