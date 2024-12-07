@@ -5,11 +5,11 @@ from sqlalchemy.orm import sessionmaker, relationship
 
 # Define the models
 Base = declarative_base()
-
 class Assistant(Base):
     __tablename__ = 'assistants'
     id = Column(Integer, primary_key=True, autoincrement=True)
     initial = Column(String(10), unique=True, nullable=False)
+    generation = Column(String(10), nullable=False)  # Add this column
     full_name = Column(String)
 
 class Award(Base):
@@ -58,25 +58,26 @@ def insert_assistant_awards_from_xlsx(file_path):
             # Debug: Print the row to verify its structure
             print(f"Processing row: {row}")
 
-            # Check for invalid rows (skip rows with missing Initial or required columns)
-            if row[3] is None or row[4] is None or row[5] is None:
+            # Check for invalid rows (skip rows with missing Initial, Generation, or required columns)
+            if row[1] is None or row[2] is None or row[4] is None or row[6] is None:
                 print(f"Skipping row with missing or invalid data: {row}")
                 continue
 
             # Extract data
-            name = str(row[3]).strip() if row[3] else None
+            initial = str(row[1]).strip() if row[1] else None
+            generation = str(row[2]).strip() if row[2] else None
             award_name = str(row[4]).strip()
             semester = normalize_semester(str(row[5]).strip())
 
-            # Validate Initial
-            if not name:
-                print(f"Skipping row with missing or invalid name: {row}")
+            # Validate Initial and Generation
+            if not initial or not generation:
+                print(f"Skipping row with missing or invalid initial/generation: {row}")
                 continue
 
-            # Find the assistant by initial
-            assistant = session.query(Assistant).filter_by(full_name=name).first()
+            # Find the assistant by initial and generation
+            assistant = session.query(Assistant).filter_by(initial=initial, generation=generation).first()
             if not assistant:
-                print(f"Assistant with name '{name}' not found. Skipping row.")
+                print(f"Assistant with initial '{initial}' and generation '{generation}' not found. Skipping row.")
                 continue
 
             # Find the award by award name
@@ -97,7 +98,7 @@ def insert_assistant_awards_from_xlsx(file_path):
             ).first()
 
             if existing_entry:
-                print(f"AssistantAward for Assistant '{name}', Award '{award_name}', and Period '{semester}' already exists. Skipping.")
+                print(f"AssistantAward for Assistant '{initial} ({generation})', Award '{award_name}', and Period '{semester}' already exists. Skipping.")
                 continue
 
             # Insert the assistant-award relationship
@@ -108,7 +109,7 @@ def insert_assistant_awards_from_xlsx(file_path):
                 award_image="",  # Add image path if needed
             )
             session.add(new_assistant_award)
-            print(f"Inserted AssistantAward for Assistant '{name}', Award '{award_name}', and Period '{semester}'.")
+            print(f"Inserted AssistantAward for Assistant '{initial} ({generation})', Award '{award_name}', and Period '{semester}'.")
 
         # Commit the transaction
         session.commit()

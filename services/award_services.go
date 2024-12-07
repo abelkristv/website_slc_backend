@@ -3,6 +3,7 @@ package services
 
 import (
 	"errors"
+	"sort"
 
 	"github.com/abelkristv/slc_website/models"
 	"github.com/abelkristv/slc_website/repositories"
@@ -77,13 +78,23 @@ func (s *awardService) GetAwardsGroupedByPeriod() ([]PeriodResponse, error) {
 		return nil, err
 	}
 
+	awardOrder := map[string]int{
+		"Best Performing Assistant":          1,
+		"Best TPA":                           2,
+		"Best Teaching Index Assistant":      3,
+		"Best Qualification":                 4,
+		"Best Assistant Diploma":             5,
+		"Guider of Best RIG Performing Team": 6,
+		"Best RIG":                           7,
+		"Best Assistant Candidate":           8,
+	}
+
 	var result []PeriodResponse
 	for _, period := range periods {
 		periodResponse := PeriodResponse{
 			PeriodTitle: period.PeriodTitle,
 		}
 
-		// Group awards by award title
 		awardMap := make(map[string]*AwardResponse)
 		for _, assistantAward := range period.AssistantAwards {
 			awardTitle := assistantAward.Award.AwardTitle
@@ -106,10 +117,28 @@ func (s *awardService) GetAwardsGroupedByPeriod() ([]PeriodResponse, error) {
 			awardMap[awardTitle].Assistants = append(awardMap[awardTitle].Assistants, assistant)
 		}
 
+		var awards []AwardResponse
 		for _, award := range awardMap {
-			periodResponse.Awards = append(periodResponse.Awards, *award)
+			awards = append(awards, *award)
 		}
 
+		sort.Slice(awards, func(i, j int) bool {
+			orderI := awardOrder[awards[i].AwardTitle]
+			orderJ := awardOrder[awards[j].AwardTitle]
+
+			if orderI == 0 && orderJ == 0 {
+				return awards[i].AwardTitle < awards[j].AwardTitle
+			}
+			if orderI == 0 {
+				return false
+			}
+			if orderJ == 0 {
+				return true
+			}
+			return orderI < orderJ
+		})
+
+		periodResponse.Awards = awards
 		result = append(result, periodResponse)
 	}
 
