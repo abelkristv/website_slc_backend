@@ -29,6 +29,7 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 	orderby := strings.ToLower(r.URL.Query().Get("orderby"))
 	order := strings.ToLower(r.URL.Query().Get("order"))
 	status := strings.ToLower(r.URL.Query().Get("status"))
+	slcPositionStr := r.URL.Query().Get("slcposition")
 	pageStr := r.URL.Query().Get("page")
 	limitStr := r.URL.Query().Get("limit")
 
@@ -83,6 +84,19 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 		users = filteredUsers
 	}
 
+	if slcPositionStr != "" {
+		slcPosition, err := strconv.Atoi(slcPositionStr)
+		if err == nil {
+			filteredUsers := []models.Assistant{}
+			for _, user := range users {
+				if user.SLCPositionID == uint(slcPosition) {
+					filteredUsers = append(filteredUsers, user)
+				}
+			}
+			users = filteredUsers
+		}
+	}
+
 	// Calculate total count before pagination
 	totalCount := len(users)
 
@@ -125,14 +139,10 @@ func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Reque
 		Users      []models.Assistant `json:"users"`
 		TotalCount int                `json:"total_count"`
 		TotalPages int                `json:"total_pages"`
-		// Page       int                `json:"page"`
-		// Limit      int                `json:"limit"`
 	}{
 		Users:      users,
 		TotalCount: totalCount,
 		TotalPages: totalPages,
-		// Page:       page,
-		// Limit:      limit,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
