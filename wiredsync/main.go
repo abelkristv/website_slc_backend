@@ -28,7 +28,7 @@ func main() {
 	username := os.Args[1]
 	password := os.Args[2]
 	if username == "" || password == "" {
-		log.Fatalf("USERNAME_WIREDSYNC or PASSWORD_WIREDSYNC is not set in .env")
+		log.Fatalf("USERNAME_WIREDSYNC or PASSWORD_WIREDSYNC is not set")
 	}
 	var err error
 	client, err = token.CreateAuthenticatedClient(username, password)
