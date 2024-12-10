@@ -21,6 +21,7 @@ func main() {
 	for _, arg := range os.Args {
 		if arg == "--seed" {
 			database.SeedDatabase(db)
+			return
 		} else if arg == "--clear" {
 			database.ClearDatabase(db)
 			return
