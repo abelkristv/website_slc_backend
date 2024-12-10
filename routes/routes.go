@@ -140,5 +140,5 @@ func RegisterWiredSyncRoutes(router *mux.Router, wiredsyncHandler *handlers.Wire
 
 	secured := router.PathPrefix("/").Subrouter()
 	secured.Use(middleware.TokenValid)
-	secured.HandleFunc("/wiredsync", wiredsyncHandler.RunProgram).Methods("POST")
+	router.HandleFunc("/wiredsync", wiredsyncHandler.RunProgram).Methods("POST")
 }

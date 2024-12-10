@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"os/exec"
 )
 
@@ -31,49 +31,29 @@ func (h *WiredSyncHandler) RunProgram(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Prepare the command
 	cmd := exec.Command("go", "run", "wiredsync/main.go", req.Username, req.Password)
 
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to capture stdout: %v", err), http.StatusInternalServerError)
-		return
-	}
+	// Bind stdout and stderr to the OS terminal
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to capture stderr: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	// Start the process without blocking
+	// Start the process
 	if err := cmd.Start(); err != nil {
 		http.Error(w, fmt.Sprintf("Failed to start program: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	// Use goroutines to process stdout and stderr
-	w.Header().Set("Content-Type", "text/plain")
-	go func() {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			fmt.Fprintf(w, "[STDOUT] %s\n", scanner.Text())
-			w.(http.Flusher).Flush()
-		}
-	}()
-
-	go func() {
-		scanner := bufio.NewScanner(stderr)
-		for scanner.Scan() {
-			fmt.Fprintf(w, "[STDERR] %s\n", scanner.Text())
-			w.(http.Flusher).Flush()
-		}
-	}()
+	// Write the response immediately
+	fmt.Fprint(w, "Program is running. Check terminal logs for output.\n")
 
 	// Wait for the process to complete
 	if err := cmd.Wait(); err != nil {
-		http.Error(w, fmt.Sprintf("Program finished with an error: %v", err), http.StatusInternalServerError)
+		// Log the error to the terminal but do not write a second response
+		fmt.Fprintf(os.Stderr, "Program finished with an error: %v\n", err)
 		return
 	}
 
-	fmt.Fprint(w, "Program execution completed successfully\n")
+	// Log successful completion to the terminal
+	fmt.Fprintln(os.Stdout, "Program execution completed successfully")
 }
