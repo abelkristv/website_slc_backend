@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -37,6 +38,45 @@ func (h *WiredSyncHandler) RunProgram(w http.ResponseWriter, r *http.Request) {
 	// Bind stdout and stderr to the OS terminal
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	// Set the response headers for SSE
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	// Flush the headers
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming unsupported", http.StatusInternalServerError)
+		return
+	}
+
+	// Create pipes for redirecting os.Stdout and os.Stderr
+	rStdout, wStdout, _ := os.Pipe()
+	_, wStderr, _ := os.Pipe()
+
+	// Replace os.Stdout and os.Stderr with the writers
+	originalStdout := os.Stdout
+	originalStderr := os.Stderr
+	os.Stdout = wStdout
+	os.Stderr = wStderr
+
+	// Restore os.Stdout and os.Stderr after the function exits
+	defer func() {
+		os.Stdout = originalStdout
+		os.Stderr = originalStderr
+	}()
+
+	// Start goroutines to send logs to SSE
+	go func() {
+		scanner := bufio.NewScanner(rStdout)
+		for scanner.Scan() {
+			line := scanner.Text()
+			fmt.Fprintf(w, "data: [STDOUT] %s\n\n", line) // Send to SSE
+			flusher.Flush()
+			fmt.Fprintln(originalStdout, line) // Print to terminal
+		}
+	}()
 
 	// Start the process
 	if err := cmd.Start(); err != nil {

@@ -59,7 +59,7 @@ def insert_assistant_awards_from_xlsx(file_path):
             print(f"Processing row: {row}")
 
             # Check for invalid rows (skip rows with missing Initial, Generation, or required columns)
-            if row[1] is None or row[2] is None or row[4] is None or row[6] is None:
+            if row[1] is None or row[2] is None or row[4] is None or row[5] is None:
                 print(f"Skipping row with missing or invalid data: {row}")
                 continue
 
