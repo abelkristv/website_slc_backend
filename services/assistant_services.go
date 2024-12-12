@@ -32,6 +32,7 @@ type TeachingHistoryEntry struct {
 type AssistantAwardEntry struct {
 	AwardTitle       string
 	AwardDescription string
+	Period           string
 }
 
 func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, error) {
@@ -103,6 +104,7 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 	for _, award := range assistant.AssistantAward {
 		awardTitle := award.Award.AwardTitle
 		AwardDescription := award.Award.AwardDescription
+		awardPeriod := award.Period
 
 		found := false
 
@@ -110,6 +112,7 @@ func (s *AssistantService) GetAssistantById(id uint) (map[string]interface{}, er
 			assistantAwardEntries = append(assistantAwardEntries, AssistantAwardEntry{
 				AwardTitle:       awardTitle,
 				AwardDescription: AwardDescription,
+				Period:           awardPeriod.PeriodTitle,
 			})
 		}
 	}

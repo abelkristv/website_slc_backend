@@ -45,6 +45,7 @@ func (r *assistantRepository) GetAssistantById(id uint) (*models.Assistant, erro
 		return db.Order("period_id")
 	}).
 		Preload("AssistantAward").
+		Preload("AssistantAward.Period").
 		Preload("SLCPosition").
 		Preload("AssistantAward.Award").
 		Preload("AssistantExperience").
