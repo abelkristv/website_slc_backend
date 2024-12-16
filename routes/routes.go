@@ -87,6 +87,7 @@ func RegisterAwardRoutes(router *mux.Router, handler *handlers.AwardHandler) {
 	router.HandleFunc("/awards/{id:[0-9]+}", handler.UpdateAward).Methods("PUT")
 	router.HandleFunc("/awards/{id:[0-9]+}", handler.DeleteAward).Methods("DELETE")
 	router.HandleFunc("/awards", handler.GetAllAwardsGroupedByPeriod).Methods("GET")
+	router.HandleFunc("/all-awards", handler.GetAllAwards).Methods("GET")
 }
 
 func RegisterAssistantAwardRoutes(router *mux.Router, handler *handlers.AssistantAwardHandler) {
