@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/abelkristv/slc_website/config"
 	"github.com/abelkristv/slc_website/database"
 	"github.com/abelkristv/slc_website/handlers"
 	"github.com/abelkristv/slc_website/repositories"
@@ -16,6 +17,7 @@ import (
 
 func main() {
 	router := mux.NewRouter()
+	cfg := config.LoadConfig()
 	db, err := database.InitializeDB()
 
 	for _, arg := range os.Args {
@@ -31,6 +33,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Could not connect to the database")
 	}
+
+	emailService := services.NewEmailService(cfg.SMTPHost, cfg.SMTPPort, cfg.Username, cfg.Password)
 
 	userRepo := repositories.NewUserRepository(db)
 	userService := services.NewUserService(userRepo)
@@ -54,7 +58,7 @@ func main() {
 
 	contactUsRepo := repositories.NewContactUsRepository(db)
 	contactUsService := services.NewContactUsService(contactUsRepo)
-	contactUsHandler := handlers.NewContactUsHandler(contactUsService)
+	contactUsHandler := handlers.NewContactUsHandler(contactUsService, *emailService)
 
 	assistantSocialMediaRepo := repositories.NewAssistantSocialMediaRepository(db)
 	assistantSocialMediaService := services.NewAssistantSocialMediaService(assistantSocialMediaRepo)
@@ -74,7 +78,7 @@ func main() {
 
 	galleryRepo := repositories.NewGalleryRepository(db)
 	galleryService := services.NewGalleryService(galleryRepo)
-	galleryHandler := handlers.NewGalleryHandler(galleryService, *userService)
+	galleryHandler := handlers.NewGalleryHandler(galleryService, *userService, *emailService)
 
 	wiredsyncHandler := handlers.NewWiredSyncHandler()
 

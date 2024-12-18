@@ -14,12 +14,14 @@ import (
 type GalleryHandler struct {
 	service     services.GalleryService
 	userService services.UserService
+	emailService   services.EmailService
 }
 
-func NewGalleryHandler(service services.GalleryService, userService services.UserService) *GalleryHandler {
+func NewGalleryHandler(service services.GalleryService, userService services.UserService, emailService services.EmailService) *GalleryHandler {
 	return &GalleryHandler{
 		service:     service,
 		userService: userService,
+		emailService:   emailService,
 	}
 }
 
@@ -58,6 +60,16 @@ func (h *GalleryHandler) CreateGallery(w http.ResponseWriter, r *http.Request) {
 		gallery.GalleryStatus = "accepted"
 	} else {
 		gallery.GalleryStatus = "pending"
+
+		subject := "New Gallery Submission Pending Approval"
+		body := "A new gallery has been submitted by " + user.Username + ".\n\n" +
+			"Please review and take action."
+
+		err := h.emailService.SendEmail("jason.tanuarta@binus.ac.id", subject, body)
+		if err != nil {
+			http.Error(w, "Gallery created but failed to send notification email: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if err := h.service.CreateGallery(&gallery); err != nil {

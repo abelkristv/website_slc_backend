@@ -12,11 +12,13 @@ import (
 
 type ContactUsHandler struct {
 	service services.ContactUsService
+	emailService   services.EmailService
 }
 
-func NewContactUsHandler(service services.ContactUsService) *ContactUsHandler {
+func NewContactUsHandler(contactService services.ContactUsService, emailService services.EmailService) *ContactUsHandler {
 	return &ContactUsHandler{
-		service: service,
+		service: contactService,
+		emailService:   emailService,
 	}
 }
 
@@ -62,6 +64,19 @@ func (h *ContactUsHandler) CreateContact(w http.ResponseWriter, r *http.Request)
 
 	if err := h.service.CreateContact(&contact); err != nil {
 		http.Error(w, "Error creating contact", http.StatusInternalServerError)
+		return
+	}
+
+	subject := "New Contact Form Submission"
+	body := "You have received a new message from the contact form:\n\n" +
+		"Name: " + contact.Name + "\n" +
+		"Email: " + contact.Email + "\n" +
+		"Phone: " + contact.Phone + "\n" +
+		"Message:\n" + contact.Message + "\n"
+
+	err := h.emailService.SendEmail("jason.tanuarta@binus.ac.id", subject, body)
+	if err != nil {
+		http.Error(w, "Contact created but failed to send email: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
