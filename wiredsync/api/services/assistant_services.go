@@ -163,6 +163,85 @@ func (s *AssistantService) FetchAssistant(db *gorm.DB, authToken TokenResponse) 
 
 	}
 	wg.Wait()
+
+	for _, assistant := range assistant_data.Inactive {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for _, period := range periods {
+				if !isValidUsername(assistant.Username) {
+					log.Printf("Username %s does not match the required format. Skipping...\n", assistant.Username)
+					continue
+				}
+				// roles := s.FetchAssistantRoles(assistant.Username)
+				// log.Printf("Assistant %s has roles: %v", assistant.Username, roles)
+
+				schedules, err := api.FetchTeachingHistory(assistant.Username, period.SemesterID, authToken.AccessToken, assistant.Name, period.Description)
+				if err != nil {
+					log.Printf("Failed to fetch teaching history for assistant %s in semester %s: %v", assistant.Username, period.SemesterID, err)
+					continue
+				}
+
+				for _, schedule := range schedules {
+
+					splitSubject := func(subject string) (string, string) {
+						parts := strings.SplitN(subject, "-", 2)
+						if len(parts) < 2 {
+							return subject, ""
+						}
+						return parts[0], parts[1]
+					}
+
+					courseCode, courseName := splitSubject(schedule.Subject)
+					log.Printf("Assistant %s teaches %s - %s\n", assistant.Username, courseCode, courseName)
+
+					var course models.Course
+					if err := db.Where("course_code = ?", courseCode).First(&course).Error; err != nil {
+						log.Printf("Course not found for code %s: %v", courseCode, err)
+						continue
+					}
+
+					var periodModel models.Period
+					if err := db.Where("period_title = ?", period.Description).First(&periodModel).Error; err != nil {
+						log.Printf("Period not found for title %s: %v", period.Description, err)
+						continue
+					}
+
+					var foundAssistant models.Assistant
+					initial := assistant.Username[:2]
+					generation := assistant.Username[2:]
+					if err := db.Where("initial = ? AND generation = ?", initial, generation).First(&foundAssistant).Error; err != nil {
+						log.Printf("Failed to find assistant %s in database: %v", assistant.Username, err)
+						continue
+					}
+
+					var existingHistory models.TeachingHistory
+					if err := db.Where("assistant_id = ? AND course_id = ? AND period_id = ?", foundAssistant.ID, course.ID, periodModel.ID).First(&existingHistory).Error; err == nil {
+						log.Printf("Teaching history for assistant %s for course %s in period %s already exists, skipping...\n", assistant.Username, courseCode, period.Description)
+						continue
+					}
+
+					teachingHistory := models.TeachingHistory{
+						AssistantId: int(foundAssistant.ID),
+						CourseId:    int(course.ID),
+						PeriodId:    int(periodModel.ID),
+					}
+
+					if err := db.Create(&teachingHistory).Error; err != nil {
+						log.Printf("Failed to create teaching history: %v", err)
+					} else {
+						// for _, assistant := range assistant_data.Active {
+						// 	roles := s.FetchAssistantRoles(assistant.Username)
+						// 	log.Printf("Assistant %s has roles: %v", assistant.Username, roles)
+						// }
+						log.Printf("Inserted teaching history for assistant %s for course %s in period %s", assistant.Username, courseCode, period.Description)
+					}
+				}
+			}
+		}()
+
+	}
+	wg.Wait()
 }
 
 func (s *AssistantService) FetchAssistantRoles(username string) []string {

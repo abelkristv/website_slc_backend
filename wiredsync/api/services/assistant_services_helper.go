@@ -47,9 +47,20 @@ func isValidUsername(username string) bool {
 
 func processUser(db *gorm.DB, s *AssistantService, user api_models.Assistant, status string) bool {
 	var existingAssistant models.Assistant
-	if err := db.Where("full_name = ?", user.Name).First(&existingAssistant).Error; err == nil {
-		log.Printf("Assistant with FullName %s already exists. Skipping creation.", user.Name)
+	if err := db.Where("full_name = ? AND generation != ?", user.Name, "PART-TIME").First(&existingAssistant).Error; err == nil {
+		log.Printf("Assistant with FullName %s already exists with a Generation other than PART-TIME. Skipping creation.", user.Name)
 		return false
+	}
+
+	if err := db.Where("full_name = ? AND generation = ?", user.Name, "PART-TIME").First(&existingAssistant).Error; err == nil {
+		existingAssistant.Generation = user.Username[2:]
+		existingAssistant.Initial = user.Username[:2]
+		if updateErr := db.Save(&existingAssistant).Error; updateErr != nil {
+			log.Printf("Failed to update Assistant with FullName %s and Generation PART-TIME: %v", user.Name, updateErr)
+			return false
+		}
+		log.Printf("Updated Assistant with FullName %s and Generation PART-TIME.", user.Name)
+		return true
 	}
 
 	binusianData, err := fetchBinusianData(user.BinusianID)
@@ -104,7 +115,7 @@ func createAssistant(db *gorm.DB, user api_models.Assistant, email string, statu
 	var initial, generation string
 	profilePictureURL := fmt.Sprintf("https://bluejack.binus.ac.id/lapi/api/Account/GetThumbnail?id=%s", user.PictureID)
 
-	if strings.HasPrefix(user.Username, "LC") && len(user.Username) == 5 {
+	if (strings.HasPrefix(user.Username, "LC") || strings.HasPrefix(user.Username, "LB") || strings.HasPrefix(user.Username, "LS")) && len(user.Username) == 5 {
 		initial = user.Username
 		generation = "PART-TIME"
 	} else {
