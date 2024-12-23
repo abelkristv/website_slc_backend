@@ -34,9 +34,6 @@ func (s *assistantAwardService) CreateAssistantAward(assistantAward *models.Assi
 	if assistantAward.PeriodId == 0 {
 		return errors.New("PeriodId is required")
 	}
-	if assistantAward.AwardImage == "" {
-		return errors.New("AwardImage is required")
-	}
 
 	return s.repo.CreateAssistantAward(assistantAward)
 }
