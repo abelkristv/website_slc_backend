@@ -140,26 +140,6 @@ func seedAwards(db *gorm.DB) {
 	log.Println("Awards table seeded successfully")
 }
 
-func seedAssistantAwards(db *gorm.DB) {
-	assistantAwards := []models.AssistantAward{
-		{
-			AssistantId: 68,                                    // Set to assistantId 68
-			AwardId:     1,                                     // AwardId set to 1 (you can modify this based on your awards table)
-			PeriodId:    1,                                     // PeriodId set to 1 (assuming there's a period with ID 1)
-			AwardImage:  "https://example.com/award_image.png", // Example award image URL
-		},
-		// Add more entries if needed
-	}
-
-	for _, assistantAward := range assistantAwards {
-		err := db.Create(&assistantAward).Error
-		if err != nil {
-			log.Fatalf("Failed to seed assistant awards: %v", err)
-		}
-	}
-
-	log.Println("AssistantAwards table seeded successfully")
-}
 
 func seedSLCPositions(db *gorm.DB) {
 	positions := []models.SLCPosition{

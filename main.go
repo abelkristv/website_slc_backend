@@ -48,6 +48,10 @@ func main() {
 	eventService := services.NewEventService(eventRepo)
 	eventHandler := handlers.NewEventHandler(eventService)
 
+	assistantAwardRepo := repositories.NewAssistantAwardRepository(db)
+	assistantAwardService := services.NewAssistantAwardService(assistantAwardRepo)
+	assistantAwardHandler := handlers.NewAssistantAwardHandler(assistantAwardService)
+
 	periodRepo := repositories.NewPeriodRepository(db)
 	periodService := services.NewPeriodService(periodRepo)
 	periodHandler := handlers.NewPeriodHandler(periodService)
@@ -104,6 +108,7 @@ func main() {
 	routes.RegisterSLCPositionRoutes(router, slcPositionHandler)
 	routes.RegisterGalleryRoutes(router, galleryHandler)
 	routes.RegisterWiredSyncRoutes(router, wiredsyncHandler)
+	routes.RegisterAssistantAwardRoutes(router, assistantAwardHandler)
 
 	log.Println("Starting server on :8888")
 	log.Fatal(http.ListenAndServe(":8888", handler))
