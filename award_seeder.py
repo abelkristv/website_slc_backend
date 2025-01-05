@@ -29,9 +29,8 @@ class AssistantAward(Base):
     assistant_id = Column(Integer, ForeignKey('assistants.id'), nullable=False)
     award_id = Column(Integer, ForeignKey('awards.id'), nullable=False)
     period_id = Column(Integer, ForeignKey('periods.id'), nullable=False)
-    award_image = Column(String)
 
-DATABASE_URL = "postgresql://abel:hehe@localhost:5432/slc_website"
+DATABASE_URL = "postgresql://postgres:jasondt1@localhost:5432/slc_website"
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -106,7 +105,6 @@ def insert_assistant_awards_from_xlsx(file_path):
                 assistant_id=assistant.id,
                 award_id=award.id,
                 period_id=period.id,
-                award_image="",  # Add image path if needed
             )
             session.add(new_assistant_award)
             print(f"Inserted AssistantAward for Assistant '{initial} ({generation})', Award '{award_name}', and Period '{semester}'.")
