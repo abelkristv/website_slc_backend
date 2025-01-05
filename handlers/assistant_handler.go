@@ -24,7 +24,7 @@ func NewAssistantHandler(assistantService *services.AssistantService) *Assistant
 }
 
 func (h *AssistantHandler) GetAllAssistants(w http.ResponseWriter, r *http.Request) {
-	generation := strings.ToLower(r.URL.Query().Get("generation"))
+	generation := r.URL.Query().Get("generation")
 	name := strings.ToLower(r.URL.Query().Get("name"))
 	orderby := strings.ToLower(r.URL.Query().Get("orderby"))
 	order := strings.ToLower(r.URL.Query().Get("order"))
