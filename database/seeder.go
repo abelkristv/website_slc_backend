@@ -145,14 +145,14 @@ func seedSLCPositions(db *gorm.DB) {
 	positions := []models.SLCPosition{
 		{PositionName: "Junior Laboratory Assistant"},
 		{PositionName: "Subject Coordinator Staff"},
-		{PositionName: "Subject Coordinator Officer"},
-		{PositionName: "Network Administration Staff"},
-		{PositionName: "Network Administration Officer"},
+		{PositionName: "Subject Development Officer"},
+		{PositionName: "Network Administrator Staff"},
+		{PositionName: "Network Administrator Officer"},
 		{PositionName: "Research & Development Staff"},
 		{PositionName: "Research & Development Officer"},
-		{PositionName: "Database Administration Staff"},
-		{PositionName: "Database Administration Officer"},
-		{PositionName: "Operation Manager Officer"},
+		{PositionName: "Database Administrator Staff"},
+		{PositionName: "Database Administrator Officer"},
+		{PositionName: "Operations Management Officer"},
 	}
 
 	for _, position := range positions {
